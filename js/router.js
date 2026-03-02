@@ -31,10 +31,19 @@ const Router = {
         document.addEventListener('remote-back', () => {
             this.goBack();
         });
+
+        // 页面通用返回按钮
+        const backBtn = document.getElementById('page-header-back-btn');
+        backBtn.addEventListener('click', () => {
+            this.goBack();
+        });
     },
 
     // 导航到指定页面
     navigateTo(page, params = {}, newFocus = null) {
+        // 切换页眉可见性
+        this.updateHeaderVisibility(page, params);
+
         // 保存当前页面到堆栈
         if (this.currentPage !== page) {
             this.pageStack.push({
@@ -109,6 +118,37 @@ const Router = {
     // 获取当前页面
     getCurrentPage() {
         return this.currentPage;
+    },
+
+    // 更新页眉可见性
+    updateHeaderVisibility(page, params) {
+        const mainNav = document.getElementById('main-nav');
+        const pageHeader = document.getElementById('page-header');
+        const pageHeaderLogo = document.getElementById('page-header-logo');
+        const playerHeaderInfo = document.getElementById('page-header-player-info');
+        const playerHeaderTitle = document.getElementById('player-header-title');
+        const playerHeaderEpisode = document.getElementById('player-header-episode-info');
+
+        if (page === 'detail' || page === 'player') {
+            mainNav.style.display = 'none';
+            pageHeader.style.display = 'flex';
+
+            if (page === 'detail') {
+                pageHeaderLogo.style.display = 'flex';
+                playerHeaderInfo.style.display = 'none';
+            } else { // player page
+                pageHeaderLogo.style.display = 'none';
+                playerHeaderInfo.style.display = 'block';
+                // 更新播放页页眉信息 (需要从 params 获取)
+                if (params && params.title) {
+                    playerHeaderTitle.textContent = params.title;
+                    playerHeaderEpisode.textContent = `Episode ${params.episode || 1}`;
+                }
+            }
+        } else {
+            mainNav.style.display = 'flex';
+            pageHeader.style.display = 'none';
+        }
     }
 };
 

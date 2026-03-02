@@ -1,0 +1,91 @@
+/* 通用页面页眉样式 */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    padding: 0 var(--space-lg);
+    background-color: transparent; /* 背景默认透明 */
+    z-index: 100;
+    color: var(--text-primary);
+    transition: var(--transition-normal);
+}
+
+.page-header-left,
+.page-header-right {
+    flex: 1;
+}
+
+.page-header-center {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.page-header-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* 返回按钮 */
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-xl);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
+}
+
+.back-button.focused,
+.back-button:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 详情页Logo */
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-logo img {
+    width: 40px;
+    height: 40px;
+}
+
+.logo-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+
+/* 播放页页眉信息 */
+.player-header-info {
+    text-align: center;
+}
+
+#player-header-title {
+    font-size: var(--font-size-xxl);
+    margin: 0;
+    font-weight: 500;
+}
+
+#player-header-episode-info {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
