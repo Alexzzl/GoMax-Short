@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
     <link rel="stylesheet" href="css/detail.css">
     <link rel="stylesheet" href="css/player.css">
 </head>
+
 <body>
     <!-- Loading页面 -->
     <div id="loading-page" class="page active">
@@ -48,73 +50,174 @@
             </ul>
         </nav>
 
+        <!-- 详情页和播放页的通用返回页眉 -->
+        <header id="page-header" class="page-header" style="display: none;">
+            <div class="page-header-left">
+                <div class="back-button" data-focusable="true" id="page-header-back-btn">
+                    <span id="page-header-back-text">← Back</span>
+                </div>
+            </div>
+            <div class="page-header-center">
+                <!-- 详情页Logo -->
+                <div class="nav-logo" id="page-header-logo" style="display: none;">
+                    <img src="assets/CodeBubbyAssets/3052_414/1.svg" alt="GoMax" style="width: 40px; height: 40px;">
+                    <span class="logo-text">GoMax Short</span>
+                </div>
+                <!-- 播放页信息 -->
+                <div class="player-header-info" id="page-header-player-info" style="display: none;">
+                    <h2 id="player-header-title"></h2>
+                    <p id="player-header-episode-info"></p>
+                </div>
+            </div>
+            <div class="page-header-right"></div> <!-- 占位符，用于flex布局对齐 -->
+        </header>
+
+
         <!-- 页面容器 -->
         <main id="page-container" class="page-container">
+
             <!-- 首页 -->
             <div id="home-page" class="page">
-                <!-- 轮播推荐 -->
-                <section class="hero-section">
-                    <div class="hero-slider" id="hero-slider">
-                        <!-- 轮播项动态生成 -->
+                <!-- Hero Banner -->
+                <section class="home-hero">
+                    <!-- 多图背景 -->
+                    <div class="hero-mosaic" id="hero-mosaic">
+                        <img src="assets/CodeBubbyAssets/3099_737/2.png" alt="" class="mosaic-img">
+                        <img src="assets/CodeBubbyAssets/3099_737/3.png" alt="" class="mosaic-img">
+                        <img src="assets/CodeBubbyAssets/3099_737/4.png" alt="" class="mosaic-img">
+                        <img src="assets/CodeBubbyAssets/3099_737/5.png" alt="" class="mosaic-img">
+                        <img src="assets/CodeBubbyAssets/3099_737/6.png" alt="" class="mosaic-img">
+                    </div>
+                    <!-- 渐变遮罩 -->
+                    <div class="hero-overlay"></div>
+                    <!-- 内容 -->
+                    <div class="hero-content">
+                        <h1 class="hero-title">Free Short Drama Series, Anytime, Anywhere!</h1>
+                        <p class="hero-desc">
+                            Watch quick, addictive, and easy-to-watch short drama episodes<br>
+                            completely free
+                        </p>
+                        <!-- 标签 -->
+                        <div class="hero-tags">
+                            <span class="hero-tag">🔄 Daily Updated</span>
+                            <span class="hero-tag">📺 Mini-Series</span>
+                            <span class="hero-tag">🎬 Free Short Drama Series</span>
+                        </div>
+                        <!-- 按钮卡片 -->
+                        <div class="hero-cards">
+                            <div class="hero-card" data-focusable="true">
+                                <div class="hero-card-icon">▶️</div>
+                                <div class="hero-card-title">Episodes</div>
+                                <div class="hero-card-desc">Browse through thousands of short drama episodes</div>
+                            </div>
+                            <div class="hero-card" data-focusable="true">
+                                <div class="hero-card-icon">🎬</div>
+                                <div class="hero-card-title">Trailers</div>
+                                <div class="hero-card-desc">Watch previews before diving into full series</div>
+                            </div>
+                            <div class="hero-card" data-focusable="true">
+                                <div class="hero-card-icon">📋</div>
+                                <div class="hero-card-title">More Like This</div>
+                                <div class="hero-card-desc">Discover similar shows based on your preferences</div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
                 <!-- Featured Series -->
-                <section class="popular-section">
-                    <h2 class="section-title">Featured Series</h2>
-                    <div class="drama-grid" id="popular-dramas">
+                <section class="featured-section">
+                    <div class="section-header">
+                        <h2 class="section-title-orange">Featured Series</h2>
+                        <div class="section-divider"></div>
+                    </div>
+                    <div class="featured-grid" id="popular-dramas">
                         <!-- 剧集项动态生成 -->
                     </div>
                 </section>
             </div>
 
+
+
             <!-- 发现页 -->
             <div id="discover-page" class="page">
-                <div class="discover-layout">
-                    <!-- 左侧分类侧边栏 -->
-                    <aside class="discover-sidebar">
-                        <h2 class="sidebar-title">Categories</h2>
-                        <ul class="category-list" id="category-list">
-                            <li class="category-item active" data-category="all" data-focusable="true">
-                                <span>All</span>
-                            </li>
-                            <li class="category-item" data-category="romance" data-focusable="true">
-                                <span>Romance</span>
-                            </li>
-                            <li class="category-item" data-category="drama" data-focusable="true">
-                                <span>Drama</span>
-                            </li>
-                            <li class="category-item" data-category="comedy" data-focusable="true">
-                                <span>Comedy</span>
-                            </li>
-                            <li class="category-item" data-category="action" data-focusable="true">
-                                <span>Action</span>
-                            </li>
-                            <li class="category-item" data-category="thriller" data-focusable="true">
-                                <span>Thriller</span>
-                            </li>
-                            <li class="category-item" data-category="sci-fi" data-focusable="true">
-                                <span>Sci-Fi</span>
-                            </li>
-                        </ul>
-                    </aside>
+                <!-- 标题区域 -->
+                <section class="discover-header">
+                    <h1 class="discover-title">Discover Short Dramas</h1>
+                    <p class="discover-subtitle">
+                        <span class="highlight">Daily Updated</span> · Mini-Series · Quick, Addictive, and Easy to Watch
+                    </p>
+                </section>
 
-                    <!-- 右侧内容区 -->
-                    <div class="discover-content">
-                        <div class="content-header">
-                            <h2 class="content-title" id="category-title">All Dramas</h2>
-                            <div class="sort-options">
-                                <button class="sort-btn active" data-sort="popular" data-focusable="true">Popular</button>
-                                <button class="sort-btn" data-sort="latest" data-focusable="true">Latest</button>
-                                <button class="sort-btn" data-sort="rating" data-focusable="true">Rating</button>
-                            </div>
-                        </div>
-                        <div class="drama-grid" id="discover-dramas">
-                            <!-- 剧集项动态生成 -->
-                        </div>
+                <!-- 每日更新内容横幅 -->
+                <section class="daily-update-banner">
+                    <div class="daily-update-content">
+                        <div class="daily-icon">🔄</div>
+                        <h3 class="daily-title">Daily Updated Content</h3>
+                        <p class="daily-desc">
+                            New short drama episodes added every day! Our mini-series are perfect for quick viewing
+                            sessions,
+                            with each episode lasting only 5-10 minutes. Watch anytime, anywhere, completely free.
+                        </p>
                     </div>
-                </div>
+                </section>
+
+                <!-- 分类浏览 -->
+                <section class="browse-category">
+                    <div class="category-header">
+                        <h2 class="section-title-orange">Browse by Category</h2>
+                        <div class="section-divider"></div>
+                    </div>
+                    <div class="category-grid" id="discover-categories">
+                        <!-- 分类卡片动态生成 -->
+                    </div>
+                </section>
+
+                <!-- 免费观看横幅 -->
+                <section class="free-banner">
+                    <div class="free-banner-content">
+                        <h2 class="free-banner-title">Watch Everything For Free!</h2>
+                        <p class="free-banner-desc">
+                            No subscriptions, no payments, no hidden fees. Enjoy all our short drama series
+                            completely free. Perfect for quick breaks, commutes, or relaxing evenings.
+                        </p>
+                        <button class="free-banner-btn" data-focusable="true">Start Watching Now →</button>
+                    </div>
+                </section>
+
+                <!-- Trending Now -->
+                <section class="trending-section">
+                    <div class="section-header">
+                        <h2 class="section-title-orange">Trending Now</h2>
+                        <button class="view-all-btn" data-focusable="true">View All Trending →</button>
+                    </div>
+                    <div class="trending-grid" id="trending-dramas">
+                        <!-- 动态生成 -->
+                    </div>
+                </section>
+
+                <!-- Quick Watch -->
+                <section class="quick-watch-section">
+                    <div class="section-header">
+                        <h2 class="section-title-orange">Quick Watch (Under 10 min)</h2>
+                        <button class="view-all-btn" data-focusable="true">View All Quick Series →</button>
+                    </div>
+                    <div class="quick-watch-grid" id="quick-watch-dramas">
+                        <!-- 动态生成 -->
+                    </div>
+                </section>
+
+                <!-- New Releases -->
+                <section class="new-releases-section">
+                    <div class="section-header">
+                        <h2 class="section-title-orange">New Releases</h2>
+                        <button class="view-all-btn" data-focusable="true">View All New →</button>
+                    </div>
+                    <div class="new-releases-grid" id="new-releases-dramas">
+                        <!-- 动态生成 -->
+                    </div>
+                </section>
             </div>
+
 
             <!-- 剧集详情页 -->
             <div id="detail-page" class="page">
@@ -218,31 +321,12 @@
                 </div>
             </div>
 
-            <!-- 设置页 -->
+            <!-- 分类页 -->
             <div id="settings-page" class="page">
-                <div class="settings-layout">
-                    <h2 class="page-title">Settings</h2>
-                    <div class="settings-list">
-                        <div class="setting-item" data-focusable="true">
-                            <span class="setting-label">Video Quality</span>
-                            <span class="setting-value">Auto</span>
-                        </div>
-                        <div class="setting-item" data-focusable="true">
-                            <span class="setting-label">Auto Play Next</span>
-                            <span class="setting-value">On</span>
-                        </div>
-                        <div class="setting-item" data-focusable="true">
-                            <span class="setting-label">Notifications</span>
-                            <span class="setting-value">On</span>
-                        </div>
-                        <div class="setting-item" data-focusable="true">
-                            <span class="setting-label">Language</span>
-                            <span class="setting-value">English</span>
-                        </div>
-                        <div class="setting-item" data-focusable="true">
-                            <span class="setting-label">About</span>
-                            <span class="setting-value">v1.0.0</span>
-                        </div>
+                <div class="category-page-layout">
+                    <h2 class="page-title">Categories</h2>
+                    <div class="category-grid" id="settings-categories">
+                        <!-- 分类卡片动态生成 -->
                     </div>
                 </div>
             </div>
@@ -265,5 +349,23 @@
     <script src="js/pages/detail.js"></script>
     <script src="js/pages/player.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        function adjustZoom() {
+            const screenWidth = document.documentElement.clientWidth;
+            const screenHeight = document.documentElement.clientHeight;
+            const bodyWidth = 1920;
+            const bodyHeight = 1080;
+
+            const ratioWidth = screenWidth / bodyWidth;
+            const ratioHeight = screenHeight / bodyHeight;
+            const ratio = Math.min(ratioWidth, ratioHeight);
+
+            document.body.style.transform = `scale(${ratio})`;
+        }
+
+        window.addEventListener('resize', adjustZoom);
+        adjustZoom();
+    </script>
 </body>
+
 </html>

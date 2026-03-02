@@ -4,168 +4,470 @@
     padding-top: var(--nav-height);
 }
 
-.discover-layout {
+/* ===== 标题区域 ===== */
+.discover-header {
+    text-align: center;
+    padding: 40px 60px;
+    background: linear-gradient(0deg, #121212 0%, #121212 100%);
+}
+
+.discover-title {
+    font-size: 48px;
+    font-weight: 700;
+    color: #F48739;
+    margin-bottom: 16px;
+}
+
+.discover-subtitle {
+    font-size: 24px;
+    color: #B0B0B0;
+    font-weight: 400;
+}
+
+.discover-subtitle .highlight {
+    color: #90E48F;
+    font-weight: 700;
+}
+
+/* ===== 每日更新横幅 ===== */
+.daily-update-banner {
+    width: 1800px;
+    max-width: calc(100% - 120px);
+    margin: 0 auto 40px;
+    background: linear-gradient(174deg, rgba(144, 228, 143, 0.10) 0%, rgba(244, 135, 57, 0.10) 100%);
+    border-radius: 16px;
+    border-left: 6px solid #90E48F;
+    padding: 40px 60px;
+    box-sizing: border-box;
+}
+
+.daily-update-content {
     display: flex;
-    height: calc(100vh - var(--nav-height));
+    flex-direction: column;
+    align-items: flex-start;
 }
 
-/* ===== 侧边栏 ===== */
-.discover-sidebar {
-    width: var(--sidebar-width);
-    min-width: var(--sidebar-width);
-    background: var(--bg-card);
-    padding: 32px 0;
-    border-right: 1px solid var(--border-color);
-    overflow-y: auto;
+.daily-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
 }
 
-.sidebar-title {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: var(--text-primary);
-    padding: 0 24px;
-    margin-bottom: 24px;
+.daily-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #90E48F;
+    margin-bottom: 16px;
 }
 
-.category-list {
-    list-style: none;
+.daily-desc {
+    font-size: 18px;
+    color: #B0B0B0;
+    line-height: 1.6;
+    max-width: 800px;
 }
 
-.category-item {
-    padding: 16px 24px;
-    cursor: pointer;
-    transition: var(--transition-fast);
-    border-left: 4px solid transparent;
+/* ===== 分类浏览 ===== */
+.browse-category {
+    width: 1800px;
+    max-width: calc(100% - 120px);
+    margin: 0 auto 60px;
+}
+
+.category-header {
     display: flex;
     align-items: center;
+    margin-bottom: 30px;
 }
 
-.category-item:hover,
-.category-item.focused {
-    background: var(--bg-hover);
+.section-title-orange {
+    font-size: 32px;
+    font-weight: 700;
+    color: #F48739;
 }
 
-.category-item.active {
-    background: var(--bg-hover);
-    border-left-color: var(--primary-color);
-}
-
-.category-item.active span {
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
-.category-item span {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-}
-
-/* ===== 内容区 ===== */
-.discover-content {
+.section-divider {
     flex: 1;
-    padding: 32px 40px;
-    overflow-y: auto;
+    height: 2px;
+    background: linear-gradient(90deg, #F48739 0%, rgba(244, 135, 57, 0) 100%);
+    margin-left: 18px;
 }
 
-.content-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
 }
 
-.content-title {
-    font-size: var(--font-size-xl);
-    font-weight: 600;
-}
-
-.sort-options {
-    display: flex;
-    gap: 8px;
-}
-
-.sort-btn {
-    padding: 10px 20px;
-    background: var(--bg-card);
-    border: 2px solid transparent;
-    border-radius: var(--border-radius);
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    cursor: pointer;
-    transition: var(--transition-fast);
-}
-
-.sort-btn:hover,
-.sort-btn.focused {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
-
-.sort-btn.active {
-    background: var(--primary-color);
-    color: var(--text-primary);
-    border-color: var(--primary-color);
-}
-
-/* 发现页卡片 */
-.discover-drama-card {
-    position: relative;
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    background: var(--bg-card);
+.category-card {
+    background: #1E1E1E;
+    border-radius: 12px;
+    padding: 37px 20px;
+    text-align: center;
     cursor: pointer;
     transition: var(--transition-normal);
 }
 
-.discover-drama-card:hover,
-.discover-drama-card.focused {
+.category-card:hover,
+.category-card.focused {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(244, 135, 57, 0.2);
+}
+
+.category-icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+}
+
+.category-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.category-count {
+    font-size: 16px;
+    color: #B0B0B0;
+}
+
+/* ===== 免费观看横幅 ===== */
+.free-banner {
+    width: 1800px;
+    max-width: calc(100% - 120px);
+    margin: 0 auto 60px;
+    background: linear-gradient(170deg, #F48739 0%, #FF9F5A 100%);
+    border-radius: 16px;
+    padding: 60px 80px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(244, 135, 57, 0.30);
+}
+
+.free-banner-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.free-banner-desc {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.90);
+    margin-bottom: 30px;
+    line-height: 1.6;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.free-banner-btn {
+    background: white;
+    color: #F48739;
+    border: none;
+    border-radius: 12px;
+    padding: 18px 30px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.free-banner-btn:hover,
+.free-banner-btn.focused {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Trending Section ===== */
+.trending-section,
+.quick-watch-section,
+.new-releases-section {
+    width: 1800px;
+    max-width: calc(100% - 120px);
+    margin: 0 auto 60px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 37px;
+}
+
+.view-all-btn {
+    background: rgba(144, 228, 143, 0.10);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 18px;
+    color: #90E48F;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.view-all-btn:hover,
+.view-all-btn.focused {
+    background: rgba(144, 228, 143, 0.20);
+}
+
+/* ===== Trending Grid ===== */
+.trending-grid,
+.new-releases-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 279px);
+    gap: 25px;
+}
+
+.trending-card,
+.new-release-card {
+    background: #1E1E1E;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.trending-card:hover,
+.new-release-card:hover,
+.trending-card.focused,
+.new-release-card.focused {
     transform: translateY(-8px);
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
 }
 
-.discover-drama-card .card-image {
-    aspect-ratio: 16/9;
+.card-poster {
+    width: 275px;
+    height: 160px;
+    background: #333333;
+    position: relative;
+    margin: 2px 2px 0 2px;
 }
 
-.discover-drama-card .card-content {
-    padding: 12px 16px;
+.card-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.discover-drama-card .card-title {
-    font-size: var(--font-size-sm);
+.card-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 12px;
+    background: #90E48F;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #121212;
+}
+
+.card-content {
+    padding: 22px;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
     margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.discover-drama-card .card-meta {
+.card-meta {
+    font-size: 14px;
+    color: #B0B0B0;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.card-watch-btn {
+    width: 100%;
+    background: #F48739;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.card-watch-btn:hover,
+.card-watch-btn.focused {
+    background: #FF9F5A;
+}
+
+/* ===== Quick Watch Grid ===== */
+.quick-watch-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 207.5px);
+    gap: 20px;
+}
+
+.quick-watch-card {
+    background: #1E1E1E;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.quick-watch-card:hover,
+.quick-watch-card.focused {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.quick-time-badge {
+    width: 100%;
+    height: 32px;
+    background: #F48739;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
 }
 
-.discover-drama-card .card-rating {
-    color: #FFD700;
-    font-size: var(--font-size-xs);
+.quick-thumbnail {
+    width: 100%;
+    height: 100px;
+    background: #333333;
+    overflow: hidden;
+}
+
+.quick-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.quick-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    padding: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===== 旧样式（用于兼容） ===== */
+.discover-layout {
+    display: none;
+}
+
+.discover-sidebar,
+.discover-content {
+    display: none;
 }
 
 /* 响应式 */
-@media (max-width: 1280px) {
-    .discover-sidebar {
-        width: 240px;
-        min-width: 240px;
+@media (max-width: 1920px) {
+    .daily-update-banner,
+    .browse-category,
+    .free-banner,
+    .trending-section,
+    .quick-watch-section,
+    .new-releases-section {
+        max-width: calc(100% - 40px);
     }
+}
 
-    .discover-content {
-        padding: 24px 32px;
+@media (max-width: 1440px) {
+    .category-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .trending-grid,
+    .new-releases-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .quick-watch-grid {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
 @media (max-width: 1024px) {
-    .discover-sidebar {
-        width: 200px;
-        min-width: 200px;
+    .discover-title {
+        font-size: 36px;
     }
+    
+    .discover-subtitle {
+        font-size: 18px;
+    }
+    
+    .daily-update-banner {
+        padding: 30px 40px;
+    }
+    
+    .daily-title {
+        font-size: 24px;
+    }
+    
+    .daily-desc {
+        font-size: 16px;
+    }
+    
+    .category-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .trending-grid,
+    .new-releases-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .quick-watch-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .free-banner {
+        padding: 40px;
+    }
+    
+    .free-banner-title {
+        font-size: 28px;
+    }
+    
+    .free-banner-desc {
+        font-size: 16px;
+    }
+}
 
-    .category-item {
-        padding: 12px 16px;
+@media (max-width: 768px) {
+    .discover-header {
+        padding: 30px 20px;
+    }
+    
+    .discover-title {
+        font-size: 28px;
+    }
+    
+    .discover-subtitle {
+        font-size: 16px;
+    }
+    
+    .category-grid,
+    .trending-grid,
+    .new-releases-grid,
+    .quick-watch-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .section-divider {
+        display: none;
     }
 }

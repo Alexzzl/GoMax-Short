@@ -1,0 +1,68 @@
+* {
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding-right: 673px;
+  width: 1717px;
+  height: 45px;
+
+  .linkOutline {
+    display: flex;
+    align-items: center;
+    margin-left: -4px;
+    outline-width: 4px;
+    outline-style: solid;
+    outline-color: #90e48f;
+    border-radius: 16px;
+    padding: 4px;
+
+    .link {
+      display: flex;
+      flex-grow: 1;
+      align-items: center;
+      border-radius: 12px;
+      background: #f487391a;
+      padding: 12px 24px 13px;
+
+      .aBack {
+        display: flex;
+        align-items: center;
+        width: 66px;
+        height: 20px;
+        letter-spacing: 0;
+        color: #f48739;
+        font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+      }
+    }
+  }
+
+  .group272 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 638px;
+    width: 288px;
+    min-width: 288px;
+    height: 49px;
+
+    .background {
+      border-radius: 8px;
+      width: 48px;
+      height: 48px;
+    }
+
+    .goMaxShort {
+      line-height: 48px;
+      letter-spacing: 0;
+      color: #f48739;
+      font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+    }
+  }
+}

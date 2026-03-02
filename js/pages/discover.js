@@ -3,140 +3,182 @@
  */
 
 const DiscoverPage = {
-    // 当前分类
-    currentCategory: 'all',
-    // 当前排序
-    currentSort: 'popular',
-
     // 初始化
     init() {
+        this.renderCategories();
+        this.renderTrending();
+        this.renderQuickWatch();
+        this.renderNewReleases();
         this.bindEvents();
-        this.renderDramas();
     },
 
     // 绑定事件
     bindEvents() {
-        // 分类点击
-        const categoryList = document.getElementById('category-list');
-        if (categoryList) {
-            categoryList.querySelectorAll('.category-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    this.setCategory(item.dataset.category);
-                });
+        // 免费观看按钮
+        const freeBtn = document.querySelector('.free-banner-btn');
+        if (freeBtn) {
+            freeBtn.addEventListener('click', () => {
+                Router.navigateTo('home');
             });
         }
 
-        // 排序点击
-        const sortOptions = document.querySelector('.sort-options');
-        if (sortOptions) {
-            sortOptions.querySelectorAll('.sort-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    this.setSort(btn.dataset.sort);
-                });
+        // View All 按钮
+        document.querySelectorAll('.view-all-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // 跳转到详情或显示更多
+                console.log('View all clicked:', e.target.textContent);
             });
-        }
-
-        // 搜索
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    this.search(searchInput.value);
-                }
-            });
-        }
-    },
-
-    // 设置分类
-    setCategory(category) {
-        // 更新UI
-        document.querySelectorAll('.category-item').forEach(item => {
-            item.classList.remove('active');
-            if (item.dataset.category === category) {
-                item.classList.add('active');
-            }
         });
-
-        // 更新标题
-        const titleEl = document.getElementById('category-title');
-        if (titleEl) {
-            const cat = MockData.categories.find(c => c.id === category);
-            titleEl.textContent = cat ? cat.name : 'All Dramas';
-        }
-
-        this.currentCategory = category;
-        this.renderDramas();
     },
 
-    // 设置排序
-    setSort(sort) {
-        // 更新UI
-        document.querySelectorAll('.sort-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.sort === sort) {
-                btn.classList.add('active');
-            }
-        });
-
-        this.currentSort = sort;
-        this.renderDramas();
-    },
-
-    // 搜索
-    search(query) {
-        if (!query.trim()) {
-            this.renderDramas();
-            return;
-        }
-
-        const results = MockData.searchDramas(query);
-        this.renderDramaList(results);
-    },
-
-    // 渲染剧集
-    renderDramas() {
-        let dramas = MockData.getDramasByCategory(this.currentCategory);
-
-        // 排序
-        switch (this.currentSort) {
-            case 'popular':
-                dramas.sort((a, b) => b.rating - a.rating);
-                break;
-            case 'latest':
-                dramas.sort((a, b) => b.year.localeCompare(a.year));
-                break;
-            case 'rating':
-                dramas.sort((a, b) => b.rating - a.rating);
-                break;
-        }
-
-        this.renderDramaList(dramas);
-    },
-
-    // 渲染剧集列表
-    renderDramaList(dramas) {
-        const grid = document.getElementById('discover-dramas');
+    // 渲染分类卡片
+    renderCategories() {
+        const grid = document.getElementById('discover-categories');
         if (!grid) return;
 
-        grid.innerHTML = dramas.map(drama => `
-            <div class="discover-drama-card" data-drama-id="${drama.id}" data-focusable="true">
-                <img class="card-image" src="${drama.image}" alt="${drama.title}">
-                <div class="card-content">
-                    <h3 class="card-title">${drama.title}</h3>
-                    <div class="card-meta">
-                        <span>${drama.year}</span>
-                        <span class="card-rating">★ ${drama.rating}</span>
-                    </div>
-                </div>
+        // 获取每个分类的剧集数量
+        const categoryCounts = {};
+        MockData.categories.forEach(cat => {
+            const count = MockData.getDramasByCategory(cat.id).length;
+            categoryCounts[cat.id] = count;
+        });
+
+        // 按数量排序
+        const sortedCategories = [...MockData.categories]
+            .filter(cat => categoryCounts[cat.id] > 0)
+            .slice(0, 4);
+
+        grid.innerHTML = sortedCategories.map(cat => `
+            <div class="category-card" data-category="${cat.id}" data-focusable="true">
+                <div class="category-icon">${cat.icon}</div>
+                <div class="category-name">${cat.name}</div>
+                <div class="category-count">${categoryCounts[cat.id]} Series</div>
             </div>
         `).join('');
 
         // 绑定点击事件
-        grid.querySelectorAll('.discover-drama-card').forEach(card => {
+        grid.querySelectorAll('.category-card').forEach(card => {
+            card.addEventListener('click', () => {
+                // 可以跳转到该分类的详情页或过滤显示
+                console.log('Category clicked:', card.dataset.category);
+            });
+        });
+    },
+
+    // 渲染 Trending
+    renderTrending() {
+        const grid = document.getElementById('trending-dramas');
+        if (!grid) return;
+
+        const dramas = MockData.getPopularDramas().slice(0, 6);
+
+        grid.innerHTML = dramas.map(drama => this.createTrendingCard(drama)).join('');
+
+        // 绑定点击事件
+        grid.querySelectorAll('.trending-card').forEach(card => {
+            card.addEventListener('click', () => {
+                Router.navigateTo('detail', { dramaId: card.dataset.dramaId });
+            });
+
+            // Watch 按钮事件
+            const watchBtn = card.querySelector('.card-watch-btn');
+            if (watchBtn) {
+                watchBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    Router.navigateTo('detail', { dramaId: card.dataset.dramaId });
+                });
+            }
+        });
+    },
+
+    // 渲染 Quick Watch
+    renderQuickWatch() {
+        const grid = document.getElementById('quick-watch-dramas');
+        if (!grid) return;
+
+        // 获取剧集数少的剧集（适合快速观看）
+        const quickDramas = [...MockData.dramas]
+            .filter(d => d.episodes <= 20)
+            .slice(0, 8);
+
+        grid.innerHTML = quickDramas.map((drama, index) => this.createQuickWatchCard(drama, index)).join('');
+
+        // 绑定点击事件
+        grid.querySelectorAll('.quick-watch-card').forEach(card => {
             card.addEventListener('click', () => {
                 Router.navigateTo('detail', { dramaId: card.dataset.dramaId });
             });
         });
+    },
+
+    // 渲染 New Releases
+    renderNewReleases() {
+        const grid = document.getElementById('new-releases-dramas');
+        if (!grid) return;
+
+        const dramas = MockData.getLatestDramas().slice(0, 6);
+
+        grid.innerHTML = dramas.map(drama => this.createTrendingCard(drama)).join('');
+
+        // 绑定点击事件
+        grid.querySelectorAll('.new-release-card').forEach(card => {
+            card.addEventListener('click', () => {
+                Router.navigateTo('detail', { dramaId: card.dataset.dramaId });
+            });
+
+            const watchBtn = card.querySelector('.card-watch-btn');
+            if (watchBtn) {
+                watchBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    Router.navigateTo('detail', { dramaId: card.dataset.dramaId });
+                });
+            }
+        });
+    },
+
+    // 创建 Trending 卡片
+    createTrendingCard(drama) {
+        const badge = drama.badge || 'NEW';
+        const metaInfo = drama.seasons ? `${drama.seasons} Seasons` : `${drama.episodes} Eps`;
+        const category = MockData.categories.find(c => c.id === drama.category);
+        const categoryName = category ? category.name : drama.category;
+
+        return `
+            <div class="${this.isTrendingSection(drama) ? 'trending-card' : 'new-release-card'}" data-drama-id="${drama.id}" data-focusable="true">
+                <div class="card-poster">
+                    <img src="${drama.image}" alt="${drama.title}" onerror="this.src='assets/CodeBubbyAssets/3052_654/2.png'">
+                    <span class="card-badge">${badge}</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">${drama.title}</h3>
+                    <p class="card-meta">${categoryName} · ${metaInfo}</p>
+                    <button class="card-watch-btn">Watch</button>
+                </div>
+            </div>
+        `;
+    },
+
+    // 创建 Quick Watch 卡片
+    createQuickWatchCard(drama, index) {
+        // 模拟不同时长
+        const minutes = [5, 6, 7, 8, 5, 6, 7, 8];
+        const duration = minutes[index % minutes.length];
+
+        return `
+            <div class="quick-watch-card" data-drama-id="${drama.id}" data-focusable="true">
+                <div class="quick-time-badge">${duration} min</div>
+                <div class="quick-thumbnail">
+                    <img src="${drama.image}" alt="${drama.title}" onerror="this.src='assets/CodeBubbyAssets/3052_654/2.png'">
+                </div>
+                <h3 class="quick-title">${drama.title}</h3>
+            </div>
+        `;
+    },
+
+    // 判断是否是 Trending Section
+    isTrendingSection(drama) {
+        const trendingIds = MockData.getPopularDramas().slice(0, 6).map(d => d.id);
+        return trendingIds.includes(drama.id);
     }
 };
 

@@ -1,0 +1,45 @@
+/* css/settings.css */
+.category-page-layout {
+    padding: 0 60px;
+}
+
+.category-grid#settings-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 32px;
+}
+
+.category-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition-normal);
+    border: 2px solid transparent;
+    aspect-ratio: 1 / 1;
+}
+
+.category-card:hover,
+.category-card.focused {
+    transform: translateY(-10px) scale(1.05);
+    background: var(--bg-hover);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+    border-color: var(--primary-color);
+}
+
+.category-card-icon {
+    font-size: 64px;
+    line-height: 1;
+    margin-bottom: 20px;
+}
+
+.category-card-name {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+}

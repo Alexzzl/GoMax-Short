@@ -23,7 +23,7 @@ const Router = {
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 const page = item.dataset.page;
-                this.navigateTo(page);
+                this.navigateTo(page, {}, item);
             });
         });
 
@@ -34,7 +34,7 @@ const Router = {
     },
 
     // 导航到指定页面
-    navigateTo(page, params = {}) {
+    navigateTo(page, params = {}, newFocus = null) {
         // 保存当前页面到堆栈
         if (this.currentPage !== page) {
             this.pageStack.push({
@@ -68,7 +68,11 @@ const Router = {
 
         // 重置遥控器焦点
         if (window.Remote) {
-            Remote.resetForPage(page);
+            if (newFocus) {
+                Remote.setFocus(newFocus);
+            } else {
+                Remote.resetForPage(page);
+            }
         }
 
         // 触发页面切换事件
