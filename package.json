@@ -1,0 +1,31 @@
+{
+  "name": "gomax-short",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "generate:mock": "node scripts/generate-mock-data.mjs",
+    "dev": "npm run generate:mock && vite",
+    "build": "npm run generate:mock && vite build",
+    "preview": "vite preview",
+    "test": "npm run generate:mock && vitest run",
+    "test:watch": "npm run generate:mock && vitest"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.2.6",
+    "vite-plugin-static-copy": "^3.0.0",
+    "vitest": "^3.1.1"
+  }
+}
