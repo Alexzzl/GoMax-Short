@@ -454,5 +454,34 @@ const Remote = {
     }
 };
 
+    // 处理按键释放
+    handleKeyUp(event) {
+        const keyCode = event.keyCode || event.which;
+
+        // 停止长按检测
+        if (keyCode === this.KEYS.BACK || keyCode === this.KEYS.EXIT) {
+            this.stopKeyPressTimer();
+        }
+    },
+
+    // 开始按键长按计时
+    startKeyPressTimer(keyCode) {
+        this.stopKeyPressTimer(); // 清除之前的计时器
+
+        this.keyPressTimer = setTimeout(() => {
+            // 长按触发强制退出
+            console.log(`Long press detected for key ${keyCode}, force exiting app`);
+            this.exitApp();
+        }, this.longPressThreshold);
+    },
+
+    // 停止按键长按计时
+    stopKeyPressTimer() {
+        if (this.keyPressTimer) {
+            clearTimeout(this.keyPressTimer);
+            this.keyPressTimer = null;
+        }
+    },
+
 // 导出模块
 window.Remote = Remote;
