@@ -33,6 +33,9 @@ const Remote = {
     currentFocus: null,
     focusableElements: [],
     focusHistory: [],
+    // 按键长按检测
+    keyPressTimer: null,
+    longPressThreshold: 2000, // 2秒长按阈值
 
     // 初始化
     init() {
@@ -49,6 +52,7 @@ const Remote = {
     // 绑定事件
     bindEvents() {
         document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
         // 监听DOM变化重新扫描
         const observer = new MutationObserver(() => {
             this.scanFocusableElements();
@@ -82,10 +86,10 @@ const Remote = {
                 this.confirm();
                 break;
             case this.KEYS.BACK:
-                this.goBack();
+                this.handleReturnKey();
                 break;
             case this.KEYS.EXIT:
-                this.exitApp();
+                this.handleExitKey();
                 break;
             case this.KEYS.PLAY:
             case this.KEYS.PAUSE:
@@ -99,6 +103,11 @@ const Remote = {
                 break;
             default:
                 break;
+        }
+
+        // 检测长按按键
+        if (keyCode === this.KEYS.BACK || keyCode === this.KEYS.EXIT) {
+            this.startKeyPressTimer(keyCode);
         }
 
         // 触发自定义事件
@@ -234,12 +243,134 @@ const Remote = {
         }
     },
 
+    // 处理Return键
+    handleReturnKey() {
+        const currentPage = window.Router ? Router.getCurrentPage() : 'home';
+
+        // 如果当前在主页，显示退出确认弹窗
+        if (currentPage === 'home') {
+            this.showExitConfirmation();
+        } else {
+            // 在其他页面，执行返回操作
+            this.goBack();
+        }
+    },
+
+    // 处理Exit键
+    handleExitKey() {
+        // Exit键直接退出应用
+        this.exitApp();
+    },
+
     // 退出应用
     exitApp() {
         if (typeof tizen !== 'undefined') {
             tizen.application.getCurrentApplication().exit();
         } else {
             console.log('Exit app (simulated in web)');
+        }
+    },
+
+    // 显示退出确认弹窗
+    showExitConfirmation() {
+        // 创建退出确认弹窗
+        const exitModal = document.createElement('div');
+        exitModal.id = 'exit-confirmation-modal';
+        exitModal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        `;
+
+        exitModal.innerHTML = `
+            <div class="exit-confirmation-dialog" style="
+                background-color: var(--bg-card);
+                padding: 40px;
+                border-radius: 12px;
+                text-align: center;
+                min-width: 400px;
+                border: 2px solid var(--primary-color);
+            ">
+                <h2 style="color: var(--text-primary); margin-bottom: 20px;">Exit Application</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 18px;">
+                    Are you sure you want to exit GoMax Short?
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center;">
+                    <button id="exit-cancel-btn" data-focusable="true" style="
+                        padding: 12px 24px;
+                        background-color: var(--bg-hover);
+                        color: var(--text-primary);
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        min-width: 100px;
+                    ">Cancel</button>
+                    <button id="exit-confirm-btn" data-focusable="true" style="
+                        padding: 12px 24px;
+                        background-color: var(--primary-color);
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        min-width: 100px;
+                    ">Exit</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(exitModal);
+
+        // 绑定事件
+        const cancelBtn = exitModal.querySelector('#exit-cancel-btn');
+        const confirmBtn = exitModal.querySelector('#exit-confirm-btn');
+
+        cancelBtn.addEventListener('click', () => {
+            this.hideExitConfirmation();
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            this.hideExitConfirmation();
+            this.exitApp();
+        });
+
+        // 设置焦点到取消按钮
+        setTimeout(() => {
+            this.setFocus(cancelBtn);
+        }, 100);
+
+        // 监听返回键关闭弹窗
+        const handleModalKeydown = (e) => {
+            const keyCode = e.keyCode || e.which;
+            if (keyCode === this.KEYS.BACK) {
+                e.preventDefault();
+                this.hideExitConfirmation();
+                document.removeEventListener('keydown', handleModalKeydown);
+            }
+        };
+
+        document.addEventListener('keydown', handleModalKeydown);
+    },
+
+    // 隐藏退出确认弹窗
+    hideExitConfirmation() {
+        const modal = document.getElementById('exit-confirmation-modal');
+        if (modal) {
+            modal.remove();
+        }
+
+        // 重新扫描可聚焦元素并设置焦点
+        this.scanFocusableElements();
+        if (this.focusableElements.length > 0) {
+            this.setFocus(0);
         }
     },
 
