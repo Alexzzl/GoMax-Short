@@ -677,6 +677,451 @@ function DramaSection({
   );
 }
 
+interface DetailPageProps {
+  currentDrama?: Drama;
+  isFavoriteDrama: boolean;
+  onOpenDetail: (dramaId: number) => void;
+  onPlayEpisode: (dramaId: number, episodeId: string) => void;
+  onToggleFavorite: (dramaId: number) => void;
+}
+
+function DetailPage({
+  currentDrama,
+  isFavoriteDrama,
+  onOpenDetail,
+  onPlayEpisode,
+  onToggleFavorite
+}: DetailPageProps) {
+  if (!currentDrama) {
+    return null;
+  }
+
+  const relatedDramas = getDramasByCategory(currentDrama.category)
+    .filter((drama) => drama.id !== currentDrama.id)
+    .slice(0, 4);
+  const episodes = currentDrama.episodesList.slice(0, 12);
+
+  return (
+    <div className="detail-layout">
+      <div
+        className="detail-backdrop"
+        id="detail-backdrop"
+        style={{ backgroundImage: `url(${currentDrama.backdrop})` }}
+      />
+      <div className="detail-overlay" />
+
+      <div className="detail-main">
+        <div className="detail-poster" id="detail-poster">
+          <img src={currentDrama.image} alt={currentDrama.title} onError={handleImageError} />
+        </div>
+
+        <div className="detail-info">
+          <h1 className="detail-title" id="detail-title">
+            {currentDrama.title}
+          </h1>
+
+          <div className="detail-actions">
+            <button
+              className="action-btn primary"
+              data-focusable="true"
+              id="play-btn"
+              onClick={() => {
+                const firstEpisode = currentDrama.episodesList[0];
+                if (firstEpisode) {
+                  onPlayEpisode(currentDrama.id, firstEpisode.id);
+                }
+              }}
+              type="button"
+            >
+              <span aria-hidden="true" className="btn-icon">
+                &gt;
+              </span>
+              <span className="btn-text">Play</span>
+            </button>
+
+            <button
+              className={`action-btn${isFavoriteDrama ? " active" : ""}`}
+              data-focusable="true"
+              id="favorite-btn"
+              onClick={() => onToggleFavorite(currentDrama.id)}
+              type="button"
+            >
+              <span aria-hidden="true" className="btn-icon">
+                +
+              </span>
+              <span className="btn-text">
+                {isFavoriteDrama ? "Favorited" : "Favorite"}
+              </span>
+            </button>
+
+            <button
+              className="action-btn"
+              data-focusable="true"
+              id="share-btn"
+              type="button"
+            >
+              <span aria-hidden="true" className="btn-icon">
+                -&gt;
+              </span>
+              <span className="btn-text">Share</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <section className="detail-extended-info">
+        <div className="synopsis-section">
+          <h2 className="section-title">Synopsis</h2>
+          <p className="detail-desc" id="detail-desc">
+            {currentDrama.desc}
+          </p>
+        </div>
+
+        <div className="series-info-section">
+          <h2 className="section-title">Series Info</h2>
+          <ul className="series-info-list">
+            <li id="detail-info-category">
+              <strong>Category:</strong>
+              <span>{resolveCategoryName(currentDrama.category)}</span>
+            </li>
+            <li id="detail-info-year">
+              <strong>Year:</strong>
+              <span>{currentDrama.year}</span>
+            </li>
+            <li id="detail-info-episodes">
+              <strong>Episodes:</strong>
+              <span>{currentDrama.episodes}</span>
+            </li>
+            <li id="detail-info-seasons">
+              <strong>Seasons:</strong>
+              <span>{currentDrama.seasons}</span>
+            </li>
+            <li id="detail-info-rating">
+              <strong>Rating:</strong>
+              <span>{`* ${currentDrama.rating}`}</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="episodes-section">
+        <h2 className="section-title">Episodes</h2>
+        <div className="episodes-grid" id="episodes-grid">
+          {episodes.map((episode) => (
+            <div
+              key={episode.id}
+              className="episode-card"
+              data-focusable="true"
+              onClick={() => onPlayEpisode(currentDrama.id, episode.id)}
+            >
+              <div className="episode-thumb">
+                <img src={episode.thumbnail} alt={episode.title} onError={handleImageError} />
+                <div className="episode-play-icon">&gt;</div>
+              </div>
+
+              <div className="episode-info">
+                <div className="episode-number">Episode {episode.number}</div>
+                <div className="episode-title">{episode.title}</div>
+                <div className="episode-desc">{episode.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="related-section">
+        <h2 className="section-title">Related Dramas</h2>
+        <div className="drama-grid" id="related-dramas">
+          {relatedDramas.map((drama) => (
+            <div
+              key={drama.id}
+              className="related-drama-card"
+              data-focusable="true"
+              onClick={() => onOpenDetail(drama.id)}
+            >
+              <img
+                className="card-image"
+                src={drama.image}
+                alt={drama.title}
+                onError={handleImageError}
+              />
+              <div className="card-content">
+                <h3 className="card-title">{drama.title}</h3>
+                <div className="card-meta">
+                  <span>{drama.year}</span>
+                  <span className="card-rating">{`* ${drama.rating}`}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+interface PlayerPageProps {
+  currentDrama?: Drama;
+  currentEpisode?: Episode;
+  onSelectEpisode: (dramaId: number, episodeId: string) => void;
+}
+
+function PlayerPage({
+  currentDrama,
+  currentEpisode,
+  onSelectEpisode
+}: PlayerPageProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video || !currentEpisode) {
+      return;
+    }
+
+    video.currentTime = 0;
+    video.muted = isMuted;
+    setIsPlaying(true);
+
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => undefined);
+    }
+  }, [currentEpisode?.id, isMuted]);
+
+  useEffect(() => {
+    return () => {
+      videoRef.current?.pause();
+    };
+  }, []);
+
+  if (!currentDrama || !currentEpisode) {
+    return null;
+  }
+
+  const currentEpisodeIndex = currentDrama.episodesList.findIndex(
+    (episode) => episode.id === currentEpisode.id
+  );
+
+  const playEpisodeAtIndex = (episodeIndex: number) => {
+    const nextEpisode = currentDrama.episodesList[episodeIndex];
+    if (nextEpisode) {
+      onSelectEpisode(currentDrama.id, nextEpisode.id);
+    }
+  };
+
+  const playPreviousEpisode = () => {
+    if (currentEpisodeIndex > 0) {
+      playEpisodeAtIndex(currentEpisodeIndex - 1);
+    }
+  };
+
+  const playNextEpisode = () => {
+    if (currentEpisodeIndex < currentDrama.episodesList.length - 1) {
+      playEpisodeAtIndex(currentEpisodeIndex + 1);
+    }
+  };
+
+  const togglePlayPause = () => {
+    const video = videoRef.current;
+
+    if (!video) {
+      return;
+    }
+
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => undefined);
+    }
+    setIsPlaying(true);
+  };
+
+  const seekBy = (seconds: number) => {
+    const video = videoRef.current;
+
+    if (!video) {
+      return;
+    }
+
+    const duration = Number.isFinite(video.duration) ? video.duration : Infinity;
+    const nextTime = Math.max(0, video.currentTime + seconds);
+    video.currentTime = Math.min(duration, nextTime);
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    const nextMuted = !isMuted;
+    video.muted = nextMuted;
+    setIsMuted(nextMuted);
+  };
+
+  useEffect(() => {
+    const handleRemoteKey = (event: Event) => {
+      const detail = (event as CustomEvent<RemoteKeyEventDetail>).detail;
+
+      switch (detail.keyCode) {
+        case KEY_CODES.play:
+        case KEY_CODES.pause:
+          togglePlayPause();
+          break;
+        case KEY_CODES.fastForward:
+          seekBy(10);
+          break;
+        case KEY_CODES.rewind:
+          seekBy(-10);
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener("remote-key", handleRemoteKey);
+
+    return () => {
+      document.removeEventListener("remote-key", handleRemoteKey);
+    };
+  });
+
+  return (
+    <div className="player-layout">
+      <div className="player-main">
+        <video
+          controls
+          id="video-player"
+          key={currentEpisode.id}
+          poster={currentEpisode.thumbnail}
+          ref={videoRef}
+          src={currentEpisode.videoUrl}
+          className="video-player"
+          onEnded={playNextEpisode}
+        />
+
+        <div className="player-controls show">
+          <div className="controls-left">
+            <button
+              className="control-btn"
+              data-focusable="true"
+              id="prev-episode"
+              onClick={playPreviousEpisode}
+              type="button"
+            >
+              Prev
+            </button>
+            <button
+              className="control-btn play-pause"
+              data-focusable="true"
+              id="play-pause"
+              onClick={togglePlayPause}
+              type="button"
+            >
+              {isPlaying ? "Pause" : "Play"}
+            </button>
+            <button
+              className="control-btn"
+              data-focusable="true"
+              id="next-episode"
+              onClick={playNextEpisode}
+              type="button"
+            >
+              Next
+            </button>
+          </div>
+
+          <div className="controls-center">
+            <span className="current-episode" id="current-episode">
+              Ep {currentEpisode.number}
+            </span>
+            <span className="episode-title" id="episode-title">
+              {currentEpisode.title}
+            </span>
+          </div>
+
+          <div className="controls-right">
+            <button
+              className="control-btn"
+              data-focusable="true"
+              id="rewind-btn"
+              onClick={() => seekBy(-10)}
+              type="button"
+            >
+              -10s
+            </button>
+            <button
+              className="control-btn"
+              data-focusable="true"
+              id="forward-btn"
+              onClick={() => seekBy(10)}
+              type="button"
+            >
+              +10s
+            </button>
+            <button
+              className="control-btn"
+              data-focusable="true"
+              id="volume-btn"
+              onClick={toggleMute}
+              type="button"
+            >
+              {isMuted ? "Muted" : "Mute"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <aside className="player-sidebar">
+        <h2 className="sidebar-title">Episodes</h2>
+        <ul className="player-episodes" id="player-episodes">
+          {currentDrama.episodesList.map((episode) => (
+            <li
+              key={episode.id}
+              className={`player-episode-item${
+                episode.id === currentEpisode.id ? " active" : ""
+              }`}
+              data-focusable="true"
+              onClick={() => onSelectEpisode(currentDrama.id, episode.id)}
+            >
+              <div className="episode-thumb">
+                <img src={episode.thumbnail} alt={episode.title} onError={handleImageError} />
+              </div>
+
+              <div className="episode-info">
+                <div className="episode-number">Episode {episode.number}</div>
+                <div className="episode-title">{episode.title}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+  );
+}
+
+function resolveCategoryName(categoryId: string): string {
+  return categories.find((category) => category.id === categoryId)?.name ?? categoryId;
+}
+
+function resolveCategoryIcon(category: Category): string {
+  return CATEGORY_ICONS[category.id] ?? category.icon;
+}
+
+function getQuickDuration(index: number): number {
+  const durations = [5, 6, 7, 8, 5, 6, 7, 8];
+  return durations[index % durations.length];
+}
+
 function getPageClassName(isActive: boolean): string {
   return isActive ? "page active" : "page";
 }
@@ -685,4 +1130,345 @@ function handleImageError(event: React.SyntheticEvent<HTMLImageElement>) {
   const target = event.currentTarget;
   target.onerror = null;
   target.src = FALLBACK_IMAGE;
+}
+
+interface HistoryPageProps {
+  historyItems: WatchHistoryDetails[];
+  onOpenDetail: (dramaId: number) => void;
+}
+
+function HistoryPage({ historyItems, onOpenDetail }: HistoryPageProps) {
+  return (
+    <div className="history-layout">
+      <h2 className="page-title">Watch History</h2>
+      <div className="drama-grid" id="history-dramas">
+        {historyItems.length === 0 ? (
+          <div
+            className="empty-state"
+            style={{ gridColumn: "1 / -1", textAlign: "center", padding: 60 }}
+          >
+            <p style={{ color: "var(--text-muted)", fontSize: 18 }}>
+              No watch history yet
+            </p>
+          </div>
+        ) : (
+          historyItems
+            .filter((historyItem) => historyItem.drama)
+            .map((historyItem) => (
+              <div
+                key={`${historyItem.dramaId}-${historyItem.episodeId}`}
+                className="home-drama-card"
+                data-focusable="true"
+                onClick={() => onOpenDetail(historyItem.dramaId)}
+              >
+                <img
+                  className="card-image"
+                  src={historyItem.drama?.image}
+                  alt={historyItem.drama?.title}
+                  onError={handleImageError}
+                />
+                <div className="card-content">
+                  <h3 className="card-title">{historyItem.drama?.title}</h3>
+                  <div className="card-meta">
+                    <span>{`Ep ${historyItem.episode?.number ?? "-"}`}</span>
+                  </div>
+                </div>
+              </div>
+            ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SettingsPage() {
+  return (
+    <div className="category-page-layout">
+      <h2 className="page-title">Browse by Category</h2>
+      <div className="category-grid" id="settings-categories">
+        {categories.map((category) => (
+          <div
+            key={category.id}
+            className="category-card"
+            data-focusable="true"
+            onClick={() => undefined}
+          >
+            <img
+              src={resolveCategoryImage(category)}
+              alt={category.name}
+              className="category-card-thumbnail"
+              onError={handleImageError}
+            />
+            <div className="category-card-overlay" />
+            <h3 className="category-card-name">{category.name}</h3>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function resolveCategoryImage(category: Category): string {
+  return getDramasByCategory(category.id)[0]?.image ?? FALLBACK_IMAGE;
+}
+
+function useAppScale() {
+  useEffect(() => {
+    const adjustScale = () => {
+      const ratio = Math.min(
+        document.documentElement.clientWidth / 1920,
+        document.documentElement.clientHeight / 1080
+      );
+      const safeRatio = Number.isFinite(ratio) && ratio > 0 ? ratio : 1;
+
+      document.body.style.transform = `scale(${safeRatio})`;
+    };
+
+    window.addEventListener("resize", adjustScale);
+    adjustScale();
+
+    return () => {
+      window.removeEventListener("resize", adjustScale);
+      document.body.style.transform = "";
+    };
+  }, []);
+}
+
+function useRemoteControl(currentPage: AppPage, onBack: () => void) {
+  const currentFocusRef = useRef<HTMLElement | null>(null);
+  const onBackRef = useRef(onBack);
+
+  useEffect(() => {
+    onBackRef.current = onBack;
+  }, [onBack]);
+
+  useEffect(() => {
+    const getFocusableElements = () =>
+      Array.from(document.querySelectorAll<HTMLElement>("[data-focusable='true']")).filter(
+        isElementVisible
+      );
+
+    const clearCurrentFocus = () => {
+      if (currentFocusRef.current) {
+        currentFocusRef.current.classList.remove("focused");
+      }
+    };
+
+    const setFocus = (element: HTMLElement | null) => {
+      clearCurrentFocus();
+      currentFocusRef.current = element;
+
+      if (!element) {
+        return;
+      }
+
+      element.classList.add("focused");
+      if (typeof element.scrollIntoView === "function") {
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "nearest"
+        });
+      }
+    };
+
+    const focusFirstElementForPage = () => {
+      const focusableElements = getFocusableElements();
+      const firstPageElement =
+        focusableElements.find((element) => {
+          if (currentPage === "detail" || currentPage === "player") {
+            return Boolean(
+              element.closest("#page-header") || element.closest(`#${currentPage}-page`)
+            );
+          }
+
+          return Boolean(
+            element.closest("#main-nav") || element.closest(`#${currentPage}-page`)
+          );
+        }) ?? focusableElements[0] ?? null;
+
+      setFocus(firstPageElement);
+    };
+
+    const moveFocus = (direction: "left" | "right" | "up" | "down") => {
+      const focusableElements = getFocusableElements();
+
+      if (!focusableElements.length) {
+        return;
+      }
+
+      if (!currentFocusRef.current || !isElementVisible(currentFocusRef.current)) {
+        setFocus(focusableElements[0]);
+        return;
+      }
+
+      const nextFocus = findClosestElement(
+        currentFocusRef.current,
+        focusableElements,
+        direction
+      );
+
+      if (nextFocus) {
+        setFocus(nextFocus);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const keyCode = event.keyCode || event.which;
+
+      if (!isInputElementFocused()) {
+        event.preventDefault();
+      }
+
+      switch (keyCode) {
+        case KEY_CODES.up:
+          moveFocus("up");
+          break;
+        case KEY_CODES.down:
+          moveFocus("down");
+          break;
+        case KEY_CODES.left:
+          moveFocus("left");
+          break;
+        case KEY_CODES.right:
+          moveFocus("right");
+          break;
+        case KEY_CODES.enter:
+          currentFocusRef.current?.click();
+          break;
+        case KEY_CODES.back:
+        case KEY_CODES.escape:
+          onBackRef.current();
+          break;
+        case KEY_CODES.exit:
+          exitTizenApp();
+          break;
+        default:
+          break;
+      }
+
+      document.dispatchEvent(
+        new CustomEvent<RemoteKeyEventDetail>("remote-key", {
+          detail: { keyCode }
+        })
+      );
+    };
+
+    const observer = new MutationObserver(() => {
+      if (!currentFocusRef.current || !isElementVisible(currentFocusRef.current)) {
+        focusFirstElementForPage();
+      }
+    });
+
+    document.addEventListener("keydown", handleKeyDown);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "style"]
+    });
+    focusFirstElementForPage();
+
+    return () => {
+      clearCurrentFocus();
+      document.removeEventListener("keydown", handleKeyDown);
+      observer.disconnect();
+    };
+  }, [currentPage]);
+}
+
+function isInputElementFocused(): boolean {
+  const tagName = document.activeElement?.tagName.toLowerCase();
+  return tagName === "input" || tagName === "textarea";
+}
+
+function isElementVisible(element: HTMLElement): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  let currentElement: HTMLElement | null = element;
+
+  while (currentElement) {
+    const style = window.getComputedStyle(currentElement);
+    if (style.display === "none" || style.visibility === "hidden") {
+      return false;
+    }
+
+    currentElement = currentElement.parentElement;
+  }
+
+  return true;
+}
+
+function findClosestElement(
+  currentElement: HTMLElement,
+  allElements: HTMLElement[],
+  direction: "left" | "right" | "up" | "down"
+): HTMLElement | null {
+  const currentRect = currentElement.getBoundingClientRect();
+  const currentCenterX = currentRect.left + currentRect.width / 2;
+  const currentCenterY = currentRect.top + currentRect.height / 2;
+
+  let bestElement: HTMLElement | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (const candidate of allElements) {
+    if (candidate === currentElement) {
+      continue;
+    }
+
+    const candidateRect = candidate.getBoundingClientRect();
+    const candidateCenterX = candidateRect.left + candidateRect.width / 2;
+    const candidateCenterY = candidateRect.top + candidateRect.height / 2;
+    const deltaX = candidateCenterX - currentCenterX;
+    const deltaY = candidateCenterY - currentCenterY;
+
+    if (direction === "left" && deltaX >= 0) {
+      continue;
+    }
+
+    if (direction === "right" && deltaX <= 0) {
+      continue;
+    }
+
+    if (direction === "up" && deltaY >= 0) {
+      continue;
+    }
+
+    if (direction === "down" && deltaY <= 0) {
+      continue;
+    }
+
+    const primaryDistance =
+      direction === "left" || direction === "right"
+        ? Math.abs(deltaX)
+        : Math.abs(deltaY);
+    const secondaryDistance =
+      direction === "left" || direction === "right"
+        ? Math.abs(deltaY)
+        : Math.abs(deltaX);
+    const score = primaryDistance * 1000 + secondaryDistance;
+
+    if (score < bestScore) {
+      bestScore = score;
+      bestElement = candidate;
+    }
+  }
+
+  return bestElement;
+}
+
+function exitTizenApp() {
+  const maybeTizenWindow = window as Window & {
+    tizen?: {
+      application?: {
+        getCurrentApplication?: () => {
+          exit: () => void;
+        };
+      };
+    };
+  };
+
+  maybeTizenWindow.tizen?.application?.getCurrentApplication?.().exit();
 }
