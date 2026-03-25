@@ -266,9 +266,7 @@ async function main() {
       `
         (() => {
           window.scrollTo(0, 0);
-          const card = document.querySelector('#popular-dramas .home-drama-card')
-            || document.querySelector('#home-page .home-drama-card')
-            || document.querySelector('.home-drama-card');
+          const card = document.querySelector('.home-drama-card');
           if (!card) {
             throw new Error('No drama card found on the Home page.');
           }
@@ -280,11 +278,10 @@ async function main() {
     await waitForCondition(
       cdp,
       `
-        location.hash.startsWith('#detail')
-        && document.getElementById('detail-page')?.classList.contains('active')
-        && document.querySelector('#detail-page .action-btn.primary')
-      `
-    );
+        location.hash.startsWith('#detail') &&
+        document.getElementById('detail-page')?.classList.contains('active')
+      `, 15000);
+    await delay(1000);
     await delay(400);
 
     const detailSize = await captureCurrentView(cdp, path.join(OUTPUT_DIR, '05-detail-page.jpg'));
