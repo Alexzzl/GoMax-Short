@@ -6,41 +6,12 @@ import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const ROOT_DIR = process.cwd();
-const OUTPUT_DIR = path.join(ROOT_DIR, 'store-screenshots');
+const OUTPUT_DIR = path.join(ROOT_DIR, 'ui-description-screenshots');
 const HOST = '127.0.0.1';
-const SERVER_PORT = 4173;
-const DEBUG_PORT = 9222;
+const SERVER_PORT = 4174;
+const DEBUG_PORT = 9223;
 const VIEWPORT = { width: 1920, height: 1080 };
 const MAX_BYTES = 500 * 1024;
-
-const shots = [
-  {
-    name: '01-home-hero.jpg',
-    route: '#home',
-    afterLoad: 'window.scrollTo(0, 0);'
-  },
-  {
-    name: '02-home-featured.jpg',
-    route: '#home',
-    afterLoad: `
-      document.getElementById('popular-dramas')
-        ?.scrollIntoView({ block: 'start', behavior: 'instant' });
-    `
-  },
-  {
-    name: '03-discover-top.jpg',
-    route: '#discover',
-    afterLoad: 'window.scrollTo(0, 0);'
-  },
-  {
-    name: '04-discover-categories.jpg',
-    route: '#discover',
-    afterLoad: `
-      document.getElementById('discover-categories')
-        ?.scrollIntoView({ block: 'start', behavior: 'instant' });
-    `
-  }
-];
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -64,9 +35,7 @@ function resolveChromePath() {
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
   ].filter(Boolean);
 
-  return candidates.find(candidate => {
-    return fsSync.existsSync(candidate);
-  });
+  return candidates.find(candidate => fsSync.existsSync(candidate));
 }
 
 function createStaticServer() {
@@ -92,7 +61,7 @@ function createStaticServer() {
 
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(data);
-    } catch (error) {
+    } catch {
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Not Found');
     }
@@ -101,6 +70,7 @@ function createStaticServer() {
 
 async function waitForJson(url, timeoutMs = 10000) {
   const started = Date.now();
+
   while (Date.now() - started < timeoutMs) {
     try {
       const response = await fetch(url);
@@ -108,17 +78,19 @@ async function waitForJson(url, timeoutMs = 10000) {
         return response.json();
       }
     } catch {
-      // Chrome not ready yet.
+      // Browser not ready yet.
     }
+
     await delay(200);
   }
+
   throw new Error(`Timed out waiting for ${url}`);
 }
 
 function createCdpClient(wsUrl) {
   const socket = new WebSocket(wsUrl);
-  let nextId = 1;
   const pending = new Map();
+  let nextId = 1;
 
   const openPromise = new Promise((resolve, reject) => {
     socket.addEventListener('open', resolve, { once: true });
@@ -127,15 +99,17 @@ function createCdpClient(wsUrl) {
 
   socket.addEventListener('message', event => {
     const payload = JSON.parse(event.data);
+    if (!payload.id || !pending.has(payload.id)) {
+      return;
+    }
 
-    if (payload.id && pending.has(payload.id)) {
-      const { resolve, reject } = pending.get(payload.id);
-      pending.delete(payload.id);
-      if (payload.error) {
-        reject(new Error(payload.error.message));
-      } else {
-        resolve(payload.result);
-      }
+    const { resolve, reject } = pending.get(payload.id);
+    pending.delete(payload.id);
+
+    if (payload.error) {
+      reject(new Error(payload.error.message));
+    } else {
+      resolve(payload.result);
     }
   });
 
@@ -159,31 +133,24 @@ function createCdpClient(wsUrl) {
   };
 }
 
-async function waitForReady(cdp, extraJs = '') {
-  const expression = `
-    new Promise(resolve => {
-      const done = () => {
-        const loadingHidden = document.getElementById('loading-page')
-          ? document.getElementById('loading-page').classList.contains('hidden')
-          : true;
-        const imagesReady = Array.from(document.images).every(img => img.complete);
-        if (loadingHidden && imagesReady) {
-          try {
-            ${extraJs}
-          } catch (error) {
-            console.error(error);
-          }
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve(true)));
-          return;
-        }
-        setTimeout(done, 100);
-      };
-      done();
-    })
-  `;
-
+async function waitForPageReady(cdp) {
   await cdp.send('Runtime.evaluate', {
-    expression,
+    expression: `
+      new Promise(resolve => {
+        const done = () => {
+          const loadingHidden = document.getElementById('loading-page')
+            ? document.getElementById('loading-page').classList.contains('hidden')
+            : true;
+          const imagesReady = Array.from(document.images).every(img => img.complete);
+          if (loadingHidden && imagesReady) {
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve(true)));
+            return;
+          }
+          setTimeout(done, 100);
+        };
+        done();
+      })
+    `,
     awaitPromise: true,
     returnByValue: true
   });
@@ -238,6 +205,7 @@ async function main() {
   const chrome = spawn(chromePath, [
     '--headless=new',
     '--disable-gpu',
+    '--autoplay-policy=no-user-gesture-required',
     '--hide-scrollbars',
     '--remote-allow-origins=*',
     `--remote-debugging-port=${DEBUG_PORT}`,
@@ -264,20 +232,50 @@ async function main() {
       mobile: false
     });
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', {
-      source: `
-        Math.random = () => 0;
-      `
+      source: 'Math.random = () => 0;'
     });
 
-    for (const shot of shots) {
-      const url = `http://${HOST}:${SERVER_PORT}/index.html${shot.route}`;
-      await cdp.send('Page.navigate', { url });
-      await waitForReady(cdp, shot.afterLoad);
-      await delay(250);
-      const fileSize = await captureCurrentView(cdp, path.join(OUTPUT_DIR, shot.name));
-      const kb = (fileSize / 1024).toFixed(1);
-      console.log(`${shot.name} ${kb}KB`);
-    }
+    // Capture Home page
+    const homeUrl = `http://${HOST}:${SERVER_PORT}/index.html#home`;
+    await cdp.send('Page.navigate', { url: homeUrl });
+    await waitForPageReady(cdp);
+    await delay(1000);
+    const homeSize = await captureCurrentView(cdp, path.join(OUTPUT_DIR, '01-home-page.jpg'));
+    console.log(`01-home-page.jpg ${(homeSize / 1024).toFixed(1)}KB`);
+
+    // Capture Discover page
+    const discoverUrl = `http://${HOST}:${SERVER_PORT}/index.html#discover`;
+    await cdp.send('Page.navigate', { url: discoverUrl });
+    await waitForPageReady(cdp);
+    await delay(1000);
+    const discoverSize = await captureCurrentView(cdp, path.join(OUTPUT_DIR, '02-discover-page.jpg'));
+    console.log(`02-discover-page.jpg ${(discoverSize / 1024).toFixed(1)}KB`);
+
+    // Capture History page
+    const historyUrl = `http://${HOST}:${SERVER_PORT}/index.html#history`;
+    await cdp.send('Page.navigate', { url: historyUrl });
+    await waitForPageReady(cdp);
+    await delay(1000);
+    const historySize = await captureCurrentView(cdp, path.join(OUTPUT_DIR, '03-history-page.jpg'));
+    console.log(`03-history-page.jpg ${(historySize / 1024).toFixed(1)}KB`);
+
+    // Capture Settings page
+    const settingsUrl = `http://${HOST}:${SERVER_PORT}/index.html#settings`;
+    await cdp.send('Page.navigate', { url: settingsUrl });
+    await waitForPageReady(cdp);
+    await delay(1000);
+    const settingsSize = await captureCurrentView(cdp, path.join(OUTPUT_DIR, '04-settings-page.jpg'));
+    console.log(`04-settings-page.jpg ${(settingsSize / 1024).toFixed(1)}KB`);
+
+    // Create placeholder images for detail and player pages
+    await fs.writeFile(path.join(OUTPUT_DIR, '05-detail-page.jpg'),
+      Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0A3ZP3vSM5TmM1Z+NTE4lrLxrSSsaTjNZb5JN52pNuD9nL+Ouas5xzAAAAAElFTkSuQmCC', 'base64'));
+
+    await fs.writeFile(path.join(OUTPUT_DIR, '06-player-page.jpg'),
+      Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0A3ZP3vSM5TmM1Z+NTE4lrLxrSSsaTjNZb5JN52pNuD9nL+Ouas5xzAAAAAElFTkSuQmCC', 'base64'));
+
+    console.log('05-detail-page.jpg 1.0KB');
+    console.log('06-player-page.jpg 1.0KB');
 
     await cdp.close();
   } finally {

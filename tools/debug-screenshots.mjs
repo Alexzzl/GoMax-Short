@@ -6,41 +6,11 @@ import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const ROOT_DIR = process.cwd();
-const OUTPUT_DIR = path.join(ROOT_DIR, 'store-screenshots');
+const OUTPUT_DIR = path.join(ROOT_DIR, 'debug-screenshots');
 const HOST = '127.0.0.1';
-const SERVER_PORT = 4173;
-const DEBUG_PORT = 9222;
+const SERVER_PORT = 4175;
+const DEBUG_PORT = 9224;
 const VIEWPORT = { width: 1920, height: 1080 };
-const MAX_BYTES = 500 * 1024;
-
-const shots = [
-  {
-    name: '01-home-hero.jpg',
-    route: '#home',
-    afterLoad: 'window.scrollTo(0, 0);'
-  },
-  {
-    name: '02-home-featured.jpg',
-    route: '#home',
-    afterLoad: `
-      document.getElementById('popular-dramas')
-        ?.scrollIntoView({ block: 'start', behavior: 'instant' });
-    `
-  },
-  {
-    name: '03-discover-top.jpg',
-    route: '#discover',
-    afterLoad: 'window.scrollTo(0, 0);'
-  },
-  {
-    name: '04-discover-categories.jpg',
-    route: '#discover',
-    afterLoad: `
-      document.getElementById('discover-categories')
-        ?.scrollIntoView({ block: 'start', behavior: 'instant' });
-    `
-  }
-];
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -64,13 +34,12 @@ function resolveChromePath() {
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
   ].filter(Boolean);
 
-  return candidates.find(candidate => {
-    return fsSync.existsSync(candidate);
-  });
+  return candidates.find(candidate => fsSync.existsSync(candidate));
 }
 
 function createStaticServer() {
   return http.createServer(async (req, res) => {
+    console.log(`Request: ${req.url}`);
     try {
       const url = new URL(req.url, `http://${HOST}:${SERVER_PORT}`);
       const requestPath = decodeURIComponent(url.pathname);
@@ -78,7 +47,7 @@ function createStaticServer() {
       const normalizedPath = path.normalize(relativePath);
       const fullPath = path.resolve(ROOT_DIR, 'dist', normalizedPath);
 
-      if (!fullPath.startsWith(ROOT_DIR)) {
+      if (!fullPath.startsWith(path.resolve(ROOT_DIR, 'dist'))) {
         res.writeHead(403);
         res.end('Forbidden');
         return;
@@ -90,9 +59,11 @@ function createStaticServer() {
       const contentType = mimeTypes[extension] || 'application/octet-stream';
       const data = await fs.readFile(filePath);
 
+      console.log(`Serving: ${filePath} (${data.length} bytes)`);
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(data);
     } catch (error) {
+      console.error(`Error serving ${req.url}:`, error.message);
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Not Found');
     }
@@ -101,24 +72,27 @@ function createStaticServer() {
 
 async function waitForJson(url, timeoutMs = 10000) {
   const started = Date.now();
+
   while (Date.now() - started < timeoutMs) {
     try {
       const response = await fetch(url);
       if (response.ok) {
         return response.json();
       }
-    } catch {
-      // Chrome not ready yet.
+    } catch (error) {
+      console.log(`Chrome not ready yet: ${error.message}`);
     }
+
     await delay(200);
   }
+
   throw new Error(`Timed out waiting for ${url}`);
 }
 
 function createCdpClient(wsUrl) {
   const socket = new WebSocket(wsUrl);
-  let nextId = 1;
   const pending = new Map();
+  let nextId = 1;
 
   const openPromise = new Promise((resolve, reject) => {
     socket.addEventListener('open', resolve, { once: true });
@@ -127,15 +101,17 @@ function createCdpClient(wsUrl) {
 
   socket.addEventListener('message', event => {
     const payload = JSON.parse(event.data);
+    if (!payload.id || !pending.has(payload.id)) {
+      return;
+    }
 
-    if (payload.id && pending.has(payload.id)) {
-      const { resolve, reject } = pending.get(payload.id);
-      pending.delete(payload.id);
-      if (payload.error) {
-        reject(new Error(payload.error.message));
-      } else {
-        resolve(payload.result);
-      }
+    const { resolve, reject } = pending.get(payload.id);
+    pending.delete(payload.id);
+
+    if (payload.error) {
+      reject(new Error(payload.error.message));
+    } else {
+      resolve(payload.result);
     }
   });
 
@@ -159,63 +135,26 @@ function createCdpClient(wsUrl) {
   };
 }
 
-async function waitForReady(cdp, extraJs = '') {
-  const expression = `
-    new Promise(resolve => {
-      const done = () => {
-        const loadingHidden = document.getElementById('loading-page')
-          ? document.getElementById('loading-page').classList.contains('hidden')
-          : true;
-        const imagesReady = Array.from(document.images).every(img => img.complete);
-        if (loadingHidden && imagesReady) {
-          try {
-            ${extraJs}
-          } catch (error) {
-            console.error(error);
-          }
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve(true)));
-          return;
-        }
-        setTimeout(done, 100);
-      };
-      done();
-    })
-  `;
-
-  await cdp.send('Runtime.evaluate', {
-    expression,
-    awaitPromise: true,
-    returnByValue: true
-  });
-}
-
 async function captureCurrentView(cdp, outputPath) {
-  const qualityLevels = [85, 78, 72, 66, 60, 54];
+  console.log(`Capturing screenshot: ${outputPath}`);
 
-  for (const quality of qualityLevels) {
-    const { data } = await cdp.send('Page.captureScreenshot', {
-      format: 'jpeg',
-      quality,
-      captureBeyondViewport: false,
-      clip: {
-        x: 0,
-        y: 0,
-        width: VIEWPORT.width,
-        height: VIEWPORT.height,
-        scale: 1
-      }
-    });
-
-    const buffer = Buffer.from(data, 'base64');
-    await fs.writeFile(outputPath, buffer);
-
-    if (buffer.byteLength <= MAX_BYTES) {
-      return buffer.byteLength;
+  const { data } = await cdp.send('Page.captureScreenshot', {
+    format: 'jpeg',
+    quality: 85,
+    captureBeyondViewport: false,
+    clip: {
+      x: 0,
+      y: 0,
+      width: VIEWPORT.width,
+      height: VIEWPORT.height,
+      scale: 1
     }
-  }
+  });
 
-  const stat = await fs.stat(outputPath);
-  return stat.size;
+  const buffer = Buffer.from(data, 'base64');
+  await fs.writeFile(outputPath, buffer);
+  console.log(`Screenshot saved: ${outputPath} (${buffer.length} bytes)`);
+  return buffer.length;
 }
 
 async function main() {
@@ -225,19 +164,15 @@ async function main() {
   }
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
-  const existingFiles = await fs.readdir(OUTPUT_DIR);
-  await Promise.all(
-    existingFiles
-      .filter(name => name.toLowerCase().endsWith('.jpg'))
-      .map(name => fs.unlink(path.join(OUTPUT_DIR, name)))
-  );
 
   const server = createStaticServer();
   await new Promise(resolve => server.listen(SERVER_PORT, HOST, resolve));
+  console.log(`Server started on http://${HOST}:${SERVER_PORT}`);
 
   const chrome = spawn(chromePath, [
     '--headless=new',
     '--disable-gpu',
+    '--autoplay-policy=no-user-gesture-required',
     '--hide-scrollbars',
     '--remote-allow-origins=*',
     `--remote-debugging-port=${DEBUG_PORT}`,
@@ -254,6 +189,7 @@ async function main() {
       throw new Error('Could not find a debuggable page target.');
     }
 
+    console.log('Connecting to Chrome DevTools...');
     const cdp = createCdpClient(pageTarget.webSocketDebuggerUrl);
     await cdp.send('Page.enable');
     await cdp.send('Runtime.enable');
@@ -264,20 +200,26 @@ async function main() {
       mobile: false
     });
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', {
-      source: `
-        Math.random = () => 0;
-      `
+      source: 'Math.random = () => 0;'
     });
 
-    for (const shot of shots) {
-      const url = `http://${HOST}:${SERVER_PORT}/index.html${shot.route}`;
-      await cdp.send('Page.navigate', { url });
-      await waitForReady(cdp, shot.afterLoad);
-      await delay(250);
-      const fileSize = await captureCurrentView(cdp, path.join(OUTPUT_DIR, shot.name));
-      const kb = (fileSize / 1024).toFixed(1);
-      console.log(`${shot.name} ${kb}KB`);
-    }
+    // Test basic navigation
+    const homeUrl = `http://${HOST}:${SERVER_PORT}/index.html#home`;
+    console.log(`Navigating to: ${homeUrl}`);
+    await cdp.send('Page.navigate', { url: homeUrl });
+
+    // Wait for page load
+    await delay(3000);
+
+    // Check what's on the page
+    const result = await cdp.send('Runtime.evaluate', {
+      expression: 'document.documentElement.outerHTML.substring(0, 500)',
+      returnByValue: true
+    });
+    console.log('Page HTML (first 500 chars):', result.result.value);
+
+    // Capture screenshot
+    await captureCurrentView(cdp, path.join(OUTPUT_DIR, 'debug-home.jpg'));
 
     await cdp.close();
   } finally {
@@ -289,6 +231,6 @@ async function main() {
 }
 
 main().catch(error => {
-  console.error(error.message || error);
+  console.error('Error:', error.message || error);
   process.exitCode = 1;
 });
