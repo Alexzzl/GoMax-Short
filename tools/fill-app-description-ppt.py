@@ -12,8 +12,8 @@ from pptx.util import Inches, Pt
 
 
 ROOT = Path.cwd()
-TEMPLATE = ROOT / "App_Description_template_eng_v.1.42.pptx"
-APP_NAME = "MoneTV"
+TEMPLATE = ROOT / "docs" / "App_Description_template_eng_v.1.42.pptx"
+APP_NAME = "GoMax Short"
 COMPANY_NAME = "MATICONE LTD"
 OUTPUT = ROOT / f"App_Description_{APP_NAME}_filled.pptx"
 SCREENSHOT_DIR = ROOT / "store-screenshots"
@@ -138,7 +138,7 @@ def main() -> None:
     create_collage(
         [
             (SCREENSHOT_DIR / "01-home-hero.jpg", "1. Home screen"),
-            (SCREENSHOT_DIR / "02-home-popular.jpg", "2. Browse drama cards"),
+            (SCREENSHOT_DIR / "02-home-featured.jpg", "2. Browse featured dramas"),
             (UI_DIR / "05-detail-page.jpg", "3. Detail screen"),
             (UI_DIR / "06-player-page.jpg", "4. Player screen"),
         ],
@@ -212,8 +212,8 @@ def main() -> None:
         [
             "Whole UI Structure",
             "",
-            f"{APP_NAME} is a Samsung TV video application for browsing short-drama content",
-            "and playing selected episodes.",
+            f"{APP_NAME} is a Samsung TV short drama streaming application",
+            "for browsing and watching free short drama series.",
             "Only currently available user flows are described in this document.",
             "",
             "Primary user flow:",
@@ -221,10 +221,12 @@ def main() -> None:
             "Discover -> Detail -> Player",
             "",
             "Main screens in the current release:",
-            "- Home: featured banner and content rows",
-            "- Discover: trending, genre, and new-this-week sections",
-            "- Detail: title information, episode list, and recommendation area",
-            "- Player: video playback and episode list",
+            "- Home: featured banner, popular dramas, and quick access cards",
+            "- Discover: category browsing, trending content, and new releases",
+            "- Detail: drama information, episode list, and related content",
+            "- Player: video playback with episode navigation",
+            "- My List: watch history and favorites",
+            "- Categories: browse by drama type",
         ],
         font_size=18,
     )
@@ -267,17 +269,18 @@ def main() -> None:
     clear_and_set_text(
         usage_summary.shapes[1],
         [
-            "Use Case 1: Browse content and play an episode.",
+            "Use Case 1: Browse and watch short dramas.",
             "",
-            "1. Move focus on the Home or Discover screen with the directional keys.",
-            "2. Select a drama card with the Enter key.",
-            "3. Review the title information and episode list on the Detail screen.",
-            "4. Select Play Episode 1 or choose an available episode card.",
-            "5. The Player screen opens and video playback starts.",
-            "6. Select another episode from the episode list if needed.",
-            "7. Press Return on Discover / Detail / Player to go to the previous screen.",
+            "1. Navigate between Home, Discover, My List, and Categories with directional keys.",
+            "2. Browse featured dramas on Home or explore categories in Discover.",
+            "3. Select a drama card with the Enter key to view details.",
+            "4. Review drama information, synopsis, and episode list on Detail screen.",
+            "5. Select Play button or choose a specific episode to start watching.",
+            "6. Control playback with remote: play/pause, seek, next/previous episode.",
+            "7. Press Return to navigate back or access episode list.",
+            "8. Add dramas to favorites or view watch history in My List.",
             "",
-            "No account sign-in, activation, or purchase is required in the current release.",
+            "No account sign-in, activation, or purchase is required - all content is free!",
         ],
         font_size=18,
     )
@@ -314,12 +317,14 @@ def main() -> None:
         [
             "Screen descriptions in the current release:",
             "",
-            "Home: displays a featured banner and drama rows for browsing.",
-            "Discover: displays trending content, genre browsing blocks, and new content sections.",
-            "Detail: displays title metadata, synopsis, episode list, and recommendation area.",
-            "Player: displays the selected video and the episode list for switching episodes.",
+            "Home: features hero banner, featured dramas, and quick access cards.",
+            "Discover: displays category browsing, trending content, and new releases.",
+            "Detail: shows drama poster, synopsis, episode grid, and related content.",
+            "Player: full-screen video with episode sidebar and playback controls.",
+            "My List: watch history and favorite dramas collection.",
+            "Categories: browse dramas by genre and type.",
             "",
-            "Only currently implemented screens and functions are described in this document.",
+            "All content is completely free - no subscriptions or payments required!",
         ],
         font_size=18,
     )

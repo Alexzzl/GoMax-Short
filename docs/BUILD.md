@@ -1,9 +1,9 @@
-# MoneTV - Samsung Tizen TV 流媒体应用构建指南
+# GoMax Short - Samsung Tizen TV 流媒体应用构建指南
 
 ## 项目结构
 
 ```
-MoneTV/
+GoMaxShort/
 ├── config.xml          # Tizen 应用配置文件
 ├── index.html          # 主入口页面
 ├── src/
@@ -54,6 +54,9 @@ npm install
    # 安装依赖
    npm install
 
+   # 生成模拟数据
+   npm run generate:mock
+
    # 构建生产版本
    npm run build
    ```
@@ -75,7 +78,7 @@ npm install
 
    - 右键项目 → 构建安装包
    - 选择 "构建"（不是"构建签名安装包"）
-   - 输出：`MoneTV.wgt`
+   - 输出：`GoMaxShort.wgt`
 
 ### 方式二：使用 CLI (命令行)
 
@@ -108,7 +111,7 @@ tizen package -t wgt -s SamsungTV -- .
 3. **输出文件**
 
    - 生成的 WGT 文件将位于项目根目录
-   - 文件名为 `MoneTV.wgt`
+   - 文件名为 `GoMaxShort.wgt`
 
 ## 三星电视测试
 
@@ -149,7 +152,8 @@ tizen package -t wgt -s SamsungTV -- .
 - **发现页**：剧集分类浏览、搜索功能
 - **详情页**：剧集信息、分集列表、播放控制
 - **播放器**：视频观看、自动播放下一集
-- **设置页**：应用设置、关于信息
+- **我的列表**：观看历史记录
+- **分类页**：按类型浏览剧集
 
 ### 技术特性
 
@@ -225,3 +229,4 @@ tizen package -t wgt -s SamsungTV -- .
 - 使用 Hash-based 路由确保 TV 兼容性
 - 构建目标设置为 ES2015 以支持旧版 Chromium
 - 所有资源使用相对路径确保 TV 部署正确
+- 应用包含模拟数据生成脚本，构建前会自动运行

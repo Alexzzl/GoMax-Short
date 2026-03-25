@@ -20,10 +20,10 @@ const shots = [
     afterLoad: 'window.scrollTo(0, 0);'
   },
   {
-    name: '02-home-popular.jpg',
+    name: '02-home-featured.jpg',
     route: '#home',
     afterLoad: `
-      document.getElementById('popular-series')
+      document.getElementById('popular-dramas')
         ?.scrollIntoView({ block: 'start', behavior: 'instant' });
     `
   },
@@ -33,10 +33,10 @@ const shots = [
     afterLoad: 'window.scrollTo(0, 0);'
   },
   {
-    name: '04-discover-new-this-week.jpg',
+    name: '04-discover-categories.jpg',
     route: '#discover',
     afterLoad: `
-      document.getElementById('new-this-week-section')
+      document.getElementById('discover-categories')
         ?.scrollIntoView({ block: 'start', behavior: 'instant' });
     `
   }

@@ -266,49 +266,11 @@ async function main() {
       `
         (() => {
           window.scrollTo(0, 0);
-          if (!window.Router || typeof window.Router.showExitDialog !== 'function') {
-            throw new Error('Router.showExitDialog is not available.');
-          }
-          window.Router.showExitDialog();
-          return true;
-        })()
-      `
-    );
-    await waitForCondition(
-      cdp,
-      `
-        document.getElementById('exit-confirm-dialog')
-        && !document.getElementById('exit-confirm-dialog').hidden
-      `
-    );
-    await delay(300);
-
-    const popupSize = await captureCurrentView(cdp, path.join(OUTPUT_DIR, '07-home-return-popup.jpg'));
-    console.log(`07-home-return-popup.jpg ${(popupSize / 1024).toFixed(1)}KB`);
-
-    await evaluate(
-      cdp,
-      `
-        (() => {
-          if (!window.Router || typeof window.Router.hideExitDialog !== 'function') {
-            throw new Error('Router.hideExitDialog is not available.');
-          }
-          window.Router.hideExitDialog({ restoreFocus: false });
-          return true;
-        })()
-      `
-    );
-    await delay(150);
-
-    await evaluate(
-      cdp,
-      `
-        (() => {
-          window.scrollTo(0, 0);
-          const card = document.querySelector('#popular-series .series-card')
-            || document.querySelector('#home-page .series-card');
+          const card = document.querySelector('#popular-dramas .home-drama-card')
+            || document.querySelector('#home-page .home-drama-card')
+            || document.querySelector('.home-drama-card');
           if (!card) {
-            throw new Error('No series card found on the Home page.');
+            throw new Error('No drama card found on the Home page.');
           }
           card.click();
           return true;
@@ -320,7 +282,7 @@ async function main() {
       `
         location.hash.startsWith('#detail')
         && document.getElementById('detail-page')?.classList.contains('active')
-        && document.querySelector('#detail-page .btn-play-episode-1')
+        && document.querySelector('#detail-page .action-btn.primary')
       `
     );
     await delay(400);
@@ -332,7 +294,7 @@ async function main() {
       cdp,
       `
         (() => {
-          const playBtn = document.querySelector('#detail-page .btn-play-episode-1');
+          const playBtn = document.querySelector('#detail-page .action-btn.primary');
           if (!playBtn) {
             throw new Error('Play button not found on the detail page.');
           }
@@ -346,7 +308,7 @@ async function main() {
       `
         location.hash.startsWith('#player')
         && document.getElementById('player-page')?.classList.contains('active')
-        && document.getElementById('main-video')
+        && document.getElementById('video-player')
       `
     );
     await delay(1200);
