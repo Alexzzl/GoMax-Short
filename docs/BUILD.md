@@ -220,8 +220,8 @@ tizen package -t wgt -s SamsungTV -- .
 
 **Enhanced Return Key Policy Implementation**
 - Fixed critical Samsung TV compliance issue with proper Return/Exit key handling
-- Added exit confirmation dialog when pressing Return key from home screen
-- Implemented long-press Return/Exit key functionality for forced app termination
+- Added exit confirmation dialog when pressing Return/Exit key from home screen
+- Return/Exit key now properly navigates back from detail/player pages
 - Improved navigation flow with better focus management and page stack handling
 - Enhanced user experience with proper TV remote control interactions
 
@@ -235,15 +235,11 @@ tizen package -t wgt -s SamsungTV -- .
 
 **Critical Testing Requirements for Samsung TV Compliance:**
 
-1. **Return Key Policy Testing:**
-   - Test Return key from home screen → should show exit confirmation dialog
-   - Test Return key from other pages → should navigate back to previous page
-   - Test long-press Return key (2 seconds) → should force exit application
-   - Test Return key in exit confirmation dialog → should close dialog and return to app
-
-2. **Exit Key Testing:**
-   - Test Exit key from any screen → should immediately exit application
-   - Test long-press Exit key (2 seconds) → should force exit application
+1. **Return/Exit Key Policy Testing:**
+   - Test Return/Exit key from home screen → should show exit confirmation dialog
+   - Test Return/Exit key from other pages → should navigate back to previous page
+   - Test Return/Exit key in exit confirmation dialog → should close dialog and return to app
+   - Test confirming exit in dialog → should properly terminate application
 
 3. **Navigation Flow Testing:**
    - Verify proper page stack management during navigation
@@ -259,9 +255,9 @@ tizen package -t wgt -s SamsungTV -- .
 
 **Samsung TV Guidelines Compliance:**
 This update specifically addresses the CRITICAL return key policy requirement from Samsung's application termination guidelines. The app now properly implements:
-- Exit confirmation dialog on home screen Return key press
-- Proper navigation stack management for Return key functionality
-- Long-press detection for forced application termination
+- Exit confirmation dialog on home screen Return/Exit key press
+- Proper navigation stack management for Return/Exit key functionality
+- Return/Exit keys follow the same policy (no separate long-press detection as per Samsung requirements)
 - Correct tizen.application.getCurrentApplication().exit() API usage
 
 Please verify that the application meets all Samsung TV development fundamentals for application termination and user interface guidelines.

@@ -33,9 +33,6 @@ const Remote = {
     currentFocus: null,
     focusableElements: [],
     focusHistory: [],
-    // 按键长按检测
-    keyPressTimer: null,
-    longPressThreshold: 2000, // 2秒长按阈值
 
     // 初始化
     init() {
@@ -52,7 +49,6 @@ const Remote = {
     // 绑定事件
     bindEvents() {
         document.addEventListener('keydown', (e) => this.handleKeyDown(e));
-        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
         // 监听DOM变化重新扫描
         const observer = new MutationObserver(() => {
             this.scanFocusableElements();
@@ -86,10 +82,8 @@ const Remote = {
                 this.confirm();
                 break;
             case this.KEYS.BACK:
-                this.handleReturnKey();
-                break;
             case this.KEYS.EXIT:
-                this.handleExitKey();
+                this.handleReturnKey();
                 break;
             case this.KEYS.PLAY:
             case this.KEYS.PAUSE:
@@ -103,11 +97,6 @@ const Remote = {
                 break;
             default:
                 break;
-        }
-
-        // 检测长按按键
-        if (keyCode === this.KEYS.BACK || keyCode === this.KEYS.EXIT) {
-            this.startKeyPressTimer(keyCode);
         }
 
         // 触发自定义事件
@@ -243,7 +232,7 @@ const Remote = {
         }
     },
 
-    // 处理Return键
+    // 处理Return/Exit键（遵循三星返回键策略）
     handleReturnKey() {
         const currentPage = window.Router ? Router.getCurrentPage() : 'home';
 
@@ -254,12 +243,6 @@ const Remote = {
             // 在其他页面，执行返回操作
             this.goBack();
         }
-    },
-
-    // 处理Exit键
-    handleExitKey() {
-        // Exit键直接退出应用
-        this.exitApp();
     },
 
     // 退出应用
@@ -453,35 +436,6 @@ const Remote = {
         }
     }
 };
-
-    // 处理按键释放
-    handleKeyUp(event) {
-        const keyCode = event.keyCode || event.which;
-
-        // 停止长按检测
-        if (keyCode === this.KEYS.BACK || keyCode === this.KEYS.EXIT) {
-            this.stopKeyPressTimer();
-        }
-    },
-
-    // 开始按键长按计时
-    startKeyPressTimer(keyCode) {
-        this.stopKeyPressTimer(); // 清除之前的计时器
-
-        this.keyPressTimer = setTimeout(() => {
-            // 长按触发强制退出
-            console.log(`Long press detected for key ${keyCode}, force exiting app`);
-            this.exitApp();
-        }, this.longPressThreshold);
-    },
-
-    // 停止按键长按计时
-    stopKeyPressTimer() {
-        if (this.keyPressTimer) {
-            clearTimeout(this.keyPressTimer);
-            this.keyPressTimer = null;
-        }
-    },
 
 // 导出模块
 window.Remote = Remote;
