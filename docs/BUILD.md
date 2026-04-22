@@ -83,6 +83,14 @@ npm install
 ### 方式二：使用 CLI (命令行)
 
 ```bash
+
+tizen security-profiles list
+Loaded in 'C:\tizen-studio-data\profile\profiles.xml'.
+[Profile Name]      [Active]  
+ursulinaepzmi51
+SamsungTV           O
+
+
 # 构建前端应用
 npm run build
 
@@ -90,7 +98,7 @@ npm run build
 cd dist
 
 # 使用 Tizen CLI 创建并签名 wgt 安装包
-tizen package -t wgt -s SamsungTV -- .
+tizen package -t wgt -s ursulinaepzmi51 -- .
 ```
 
 ### 方式三：使用 CLI 直接打包
@@ -100,18 +108,48 @@ tizen package -t wgt -s SamsungTV -- .
    ```bash
    npm run build
    ```
-
 2. **使用 Tizen CLI 打包并签名**
 
    ```bash
    # 从项目根目录执行（推荐）
-   tizen package -t wgt -s SamsungTV -- dist
+   # 注意：-s 参数后的证书名称必须与注册应用时使用的证书一致
+   tizen package -t wgt -s YOUR_CERTIFICATE_NAME -- dist
    ```
-
 3. **输出文件**
 
    - 生成的 WGT 文件将位于项目根目录
    - 文件名为 `GoMaxShort.wgt`
+   - 验证文件大小（应该大于0）
+
+### 证书配置验证
+
+在打包前，确保Tizen CLI已正确配置证书：
+
+```bash
+# 列出已配置的证书
+tizen security-profiles list
+
+# 如果证书未配置，添加证书
+tizen security-profiles add -n YOUR_PROFILE_NAME -f /path/to/certificate.p12 -p YOUR_PASSWORD
+
+# 验证证书信息
+tizen security-profiles list YOUR_PROFILE_NAME
+```
+
+### 包完整性验证
+
+打包完成后，验证生成的.wgt文件：
+
+```bash
+# 检查文件大小
+ls -lh *.wgt
+
+# 验证包信息
+tizen info GoMaxShort.wgt
+
+# 检查包内容
+tizen package -l GoMaxShort.wgt
+```
 
 ## 三星电视测试
 
@@ -172,6 +210,51 @@ tizen package -t wgt -s SamsungTV -- .
 - 验证电视 IP 地址是否正确
 - 检查 Tizen Studio 中的设备连接状态
 
+### 安装包损坏/证书错误
+
+当Samsung Seller Office返回以下错误时：
+
+- `CRITICAL: Install error/Unable to download app. Package corrupted`
+- `Package corrupted, please rebuild and resubmit your app`
+- `Make sure the author certificate (.p12) is the same one used when the app was registered`
+
+**解决方案:**
+
+1. **确认证书可用性**
+
+   ```bash
+   # 查找项目中的证书文件
+   find . -name "*.p12" -o -name "*certificate*"
+   ```
+2. **重新构建应用**
+
+   ```bash
+   # 清理之前的构建
+   rm -rf dist/ *.wgt
+
+   # 重新构建
+   npm run generate:mock
+   npm run build
+
+   # 验证版本号
+   grep 'version=' config.xml
+   ```
+3. **重新签名安装包**
+
+   ```bash
+   # 使用正确的证书签名（替换YOUR_CERTIFICATE_NAME）
+   tizen package -t wgt -s YOUR_CERTIFICATE_NAME -- dist/
+   ```
+4. **验证生成的包**
+
+   ```bash
+   # 检查文件大小（应该不是0）
+   ls -la *.wgt
+
+   # 验证包信息
+   tizen info GoMaxShort.wgt
+   ```
+
 ### 应用无法显示
 
 - 检查 config.xml 是否为有效 XML 格式
@@ -215,10 +298,18 @@ tizen package -t wgt -s SamsungTV -- .
    - 上传 WGT 安装包
    - 填写应用信息和元数据
    - 提交审核
+4. **重新提审（被驳回后）**
+
+   - **证书问题**: 必须使用注册应用时相同的.p12证书
+   - **版本更新**: 确保config.xml中的版本号已更新
+   - **重新构建**: 清理并重新构建整个应用
+   - **重新签名**: 使用正确的证书重新签名
+   - **验证包完整性**: 检查.wgt文件大小和完整性
 
 ## What's new in this version
 
 **Enhanced Return Key Policy Implementation**
+
 - Fixed critical Samsung TV compliance issue with proper Return/Exit key handling
 - Added exit confirmation dialog when pressing Return/Exit key from home screen
 - Return/Exit key now properly navigates back from detail/player pages
@@ -226,6 +317,7 @@ tizen package -t wgt -s SamsungTV -- .
 - Enhanced user experience with proper TV remote control interactions
 
 **Technical Improvements**
+
 - Updated remote control module with Samsung TV development guidelines compliance
 - Added proper tizen.application.getCurrentApplication().exit() API integration
 - Improved focus history management for better navigation experience
@@ -236,18 +328,19 @@ tizen package -t wgt -s SamsungTV -- .
 **Critical Testing Requirements for Samsung TV Compliance:**
 
 1. **Return/Exit Key Policy Testing:**
+
    - Test Return/Exit key from home screen → should show exit confirmation dialog
    - Test Return/Exit key from other pages → should navigate back to previous page
    - Test Return/Exit key in exit confirmation dialog → should close dialog and return to app
    - Test confirming exit in dialog → should properly terminate application
+2. **Navigation Flow Testing:**
 
-3. **Navigation Flow Testing:**
    - Verify proper page stack management during navigation
    - Test focus restoration after using Return key
    - Verify exit confirmation dialog can be navigated with remote control
    - Test all navigation paths: Home → Detail → Player → Back navigation
+3. **Remote Control Integration:**
 
-4. **Remote Control Integration:**
    - Test all directional keys for focus navigation
    - Verify ENTER key functionality for selections
    - Test BACK and EXIT key codes (10009 and 10182 respectively)
@@ -255,6 +348,7 @@ tizen package -t wgt -s SamsungTV -- .
 
 **Samsung TV Guidelines Compliance:**
 This update specifically addresses the CRITICAL return key policy requirement from Samsung's application termination guidelines. The app now properly implements:
+
 - Exit confirmation dialog on home screen Return/Exit key press
 - Proper navigation stack management for Return/Exit key functionality
 - Return/Exit keys follow the same policy (no separate long-press detection as per Samsung requirements)
@@ -263,8 +357,46 @@ This update specifically addresses the CRITICAL return key policy requirement fr
 Please verify that the application meets all Samsung TV development fundamentals for application termination and user interface guidelines.
 4. **等待审批**
 
-   - 审核周期通常 1-2 周
-   - 根据反馈进行必要的修改
+- 审核周期通常 1-2 周
+- 根据反馈进行必要的修改
+
+## 证书管理
+
+### 重要提醒
+
+Samsung TV应用发布对证书有严格要求：
+
+1. **证书一致性**: 必须使用注册应用ID时相同的.p12证书
+2. **证书备份**: 妥善保管.p12文件和密码，丢失后无法恢复
+3. **证书安全**: 不要将证书文件提交到版本控制系统
+
+### 证书位置
+
+- 证书文件通常存储在安全位置，不在项目目录中
+- 联系开发团队获取正确的证书文件
+- 确保证书密码可用
+
+### 证书验证
+
+```bash
+# 验证证书是否可用
+tizen security-profiles list
+
+# 添加证书（如果需要）
+tizen security-profiles add -n YOUR_PROFILE_NAME -f /path/to/certificate.p12 -p YOUR_PASSWORD
+```
+
+### 如果证书丢失
+
+如果原始证书丢失且无法恢复：
+
+1. 在Samsung Seller Office创建新的应用ID
+2. 生成新的.p12证书
+3. 更新config.xml中的应用ID
+4. 重新完成整个认证流程
+5. 妥善备份新的证书文件和密码
+
+> **警告**: 新的应用ID意味着现有用户需要重新下载应用，原有用户数据可能丢失。
 
 ## 注意事项
 
@@ -276,3 +408,4 @@ Please verify that the application meets all Samsung TV development fundamentals
 - 构建目标设置为 ES2015 以支持旧版 Chromium
 - 所有资源使用相对路径确保 TV 部署正确
 - 应用包含模拟数据生成脚本，构建前会自动运行
+- **证书管理**: 确保使用正确的.p12证书进行签名，避免包损坏问题

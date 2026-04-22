@@ -17,3 +17,78 @@ input,
 textarea {
   font: inherit;
 }
+
+/* Exit Confirmation Modal - Samsung Return Key Policy */
+.exit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.exit-modal-dialog {
+  background-color: var(--bg-card, #1E1E1E);
+  padding: 40px 48px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 420px;
+  border: 2px solid var(--primary-color, #F48739);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(244, 135, 57, 0.15);
+}
+
+.exit-modal-title {
+  color: var(--text-primary, #FFFFFF);
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.exit-modal-message {
+  color: var(--text-secondary, #B0B0B0);
+  font-size: 18px;
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+.exit-modal-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.exit-modal-btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  min-width: 120px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.exit-modal-btn-cancel {
+  background-color: var(--bg-hover, #2A2A2A);
+  color: var(--text-primary, #FFFFFF);
+}
+
+.exit-modal-btn-confirm {
+  background-color: var(--primary-color, #F48739);
+  color: #FFFFFF;
+}
+
+.exit-modal-btn.focused {
+  outline: none;
+  transform: scale(1.05);
+  box-shadow:
+    0 0 0 3px rgba(244, 135, 57, 0.5),
+    0 8px 24px rgba(0, 0, 0, 0.3);
+}

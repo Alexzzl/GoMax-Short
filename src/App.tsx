@@ -117,7 +117,22 @@ export default function App() {
     setMediaState((currentState) => toggleFavorite(currentState, dramaId));
   };
 
-  useRemoteControl(routeState.currentPage, handleGoBack);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  const handleShowExit = () => {
+    setShowExitConfirm(true);
+  };
+
+  const handleExitConfirm = () => {
+    setShowExitConfirm(false);
+    exitTizenApp();
+  };
+
+  const handleExitCancel = () => {
+    setShowExitConfirm(false);
+  };
+
+  useRemoteControl(routeState.currentPage, handleGoBack, routeState.pageStack.length > 0, handleShowExit);
 
   return (
     <>
@@ -225,7 +240,75 @@ export default function App() {
           </div>
         </footer>
       </div>
+
+      {showExitConfirm ? (
+        <ExitConfirmationModal
+          onConfirm={handleExitConfirm}
+          onCancel={handleExitCancel}
+        />
+      ) : null}
     </>
+  );
+}
+
+interface ExitConfirmationModalProps {
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function ExitConfirmationModal({ onConfirm, onCancel }: ExitConfirmationModalProps) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (cancelRef.current) {
+        cancelRef.current.focus();
+        cancelRef.current.classList.add("focused");
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const keyCode = event.keyCode || event.which;
+      if (keyCode === KEY_CODES.back || keyCode === KEY_CODES.escape) {
+        event.preventDefault();
+        onCancel();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel]);
+
+  return (
+    <div className="exit-modal-overlay">
+      <div className="exit-modal-dialog">
+        <h2 className="exit-modal-title">Exit Application</h2>
+        <p className="exit-modal-message">
+          Are you sure you want to exit GoMax Short?
+        </p>
+        <div className="exit-modal-actions">
+          <button
+            ref={cancelRef}
+            className="exit-modal-btn exit-modal-btn-cancel"
+            data-focusable="true"
+            onClick={onCancel}
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            className="exit-modal-btn exit-modal-btn-confirm"
+            data-focusable="true"
+            onClick={onConfirm}
+            type="button"
+          >
+            Exit
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1234,7 +1317,12 @@ function useAppScale() {
   }, []);
 }
 
-function useRemoteControl(currentPage: AppPage, onBack: () => void) {
+function useRemoteControl(
+  currentPage: AppPage,
+  onBack: () => void,
+  canGoBack: boolean,
+  onShowExit: () => void
+) {
   const currentFocusRef = useRef<HTMLElement | null>(null);
   const onBackRef = useRef(onBack);
 
@@ -1338,10 +1426,12 @@ function useRemoteControl(currentPage: AppPage, onBack: () => void) {
           break;
         case KEY_CODES.back:
         case KEY_CODES.escape:
-          onBackRef.current();
-          break;
         case KEY_CODES.exit:
-          exitTizenApp();
+          if (canGoBack) {
+            onBackRef.current();
+          } else {
+            onShowExit();
+          }
           break;
         default:
           break;

@@ -1,7 +1,7 @@
 {
   "name": "gomax-short",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "scripts": {
     "generate:mock": "node scripts/generate-mock-data.mjs",
