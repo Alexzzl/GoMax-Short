@@ -92,3 +92,74 @@ textarea {
     0 0 0 3px rgba(244, 135, 57, 0.5),
     0 8px 24px rgba(0, 0, 0, 0.3);
 }
+
+/* Network Error Modal */
+.network-error-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.network-error-dialog {
+  background-color: var(--bg-card, #1E1E1E);
+  padding: 40px 48px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 460px;
+  max-width: 560px;
+  border: 2px solid #E74C3C;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(231, 76, 60, 0.15);
+}
+
+.network-error-title {
+  color: #E74C3C;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.network-error-message {
+  color: var(--text-secondary, #B0B0B0);
+  font-size: 18px;
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+.network-error-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.network-error-btn {
+  padding: 14px 48px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 140px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.network-error-btn-ok {
+  background-color: #E74C3C;
+  color: #FFFFFF;
+}
+
+.network-error-btn.focused {
+  outline: none;
+  transform: scale(1.05);
+  box-shadow:
+    0 0 0 3px rgba(231, 76, 60, 0.5),
+    0 8px 24px rgba(0, 0, 0, 0.3);
+}

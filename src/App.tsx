@@ -118,6 +118,7 @@ export default function App() {
   };
 
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showNetworkError, setShowNetworkError] = useState(false);
 
   const handleShowExit = () => {
     setShowExitConfirm(true);
@@ -133,6 +134,29 @@ export default function App() {
   };
 
   useRemoteControl(routeState.currentPage, handleGoBack, routeState.pageStack.length > 0, handleShowExit);
+
+  // 网络状态检测：断网时显示弹窗
+  useEffect(() => {
+    const handleOffline = () => {
+      setShowNetworkError(true);
+    };
+    const handleOnline = () => {
+      setShowNetworkError(false);
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    // 初始检查网络状态
+    if (!navigator.onLine) {
+      setShowNetworkError(true);
+    }
+
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
 
   return (
     <>
@@ -247,6 +271,10 @@ export default function App() {
           onCancel={handleExitCancel}
         />
       ) : null}
+
+      {showNetworkError ? (
+        <NetworkErrorModal onOk={() => setShowNetworkError(false)} />
+      ) : null}
     </>
   );
 }
@@ -343,6 +371,71 @@ function ExitConfirmationModal({ onConfirm, onCancel }: ExitConfirmationModalPro
             type="button"
           >
             Exit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NetworkErrorModal({ onOk }: { onOk: () => void }) {
+  const okRef = useRef<HTMLButtonElement>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (okRef.current) okRef.current.classList.add("focused");
+    }, 50);
+
+    // 5 秒后自动关闭弹窗
+    timeoutRef.current = setTimeout(() => onOk(), 5000);
+
+    return () => {
+      clearTimeout(timer);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [onOk]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const keyCode = event.keyCode || event.which;
+      event.stopPropagation();
+      event.preventDefault();
+
+      switch (keyCode) {
+        case KEY_CODES.enter:
+          onOk();
+          break;
+        case KEY_CODES.back:
+        case KEY_CODES.escape:
+        case KEY_CODES.exit:
+          onOk();
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [onOk]);
+
+  return (
+    <div className="network-error-overlay" data-network-modal-root="true">
+      <div className="network-error-dialog">
+        <h2 className="network-error-title">Network Error</h2>
+        <p className="network-error-message">
+          Network connection has been lost. Please check your network connection and try again.
+        </p>
+        <div className="network-error-actions">
+          <button
+            ref={okRef}
+            className="network-error-btn network-error-btn-ok"
+            data-focusable="false"
+            tabIndex={-1}
+            type="button"
+          >
+            OK
           </button>
         </div>
       </div>
