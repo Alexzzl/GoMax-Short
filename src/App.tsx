@@ -258,31 +258,68 @@ interface ExitConfirmationModalProps {
 
 function ExitConfirmationModal({ onConfirm, onCancel }: ExitConfirmationModalProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const [focusedIndex, setFocusedIndex] = useState<0 | 1>(0);
+
+  const updateFocusVisuals = (index: 0 | 1) => {
+    if (cancelRef.current) {
+      cancelRef.current.classList.toggle("focused", index === 0);
+    }
+    if (confirmRef.current) {
+      confirmRef.current.classList.toggle("focused", index === 1);
+    }
+  };
 
   useEffect(() => {
+    // 初始聚焦到 Cancel 按钮
     const timer = setTimeout(() => {
-      if (cancelRef.current) {
-        cancelRef.current.focus();
-        cancelRef.current.classList.add("focused");
-      }
-    }, 100);
+      updateFocusVisuals(0);
+    }, 50);
     return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
+    updateFocusVisuals(focusedIndex);
+  }, [focusedIndex]);
+
+  useEffect(() => {
+    // 弹窗打开时完全拦截所有遥控器事件，防止透传到底层页面
     const handleKeyDown = (event: KeyboardEvent) => {
       const keyCode = event.keyCode || event.which;
-      if (keyCode === KEY_CODES.back || keyCode === KEY_CODES.escape) {
-        event.preventDefault();
-        onCancel();
+      event.stopPropagation();
+      event.preventDefault();
+
+      switch (keyCode) {
+        case KEY_CODES.left:
+          setFocusedIndex((prev) => (prev === 1 ? 0 : prev));
+          break;
+        case KEY_CODES.right:
+          setFocusedIndex((prev) => (prev === 0 ? 1 : prev));
+          break;
+        case KEY_CODES.enter:
+          if (focusedIndex === 0) {
+            onCancel();
+          } else {
+            onConfirm();
+          }
+          break;
+        case KEY_CODES.back:
+        case KEY_CODES.escape:
+        case KEY_CODES.exit:
+          onCancel();
+          break;
+        default:
+          break;
       }
     };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onCancel]);
+
+    // 使用 capture 阶段确保优先于其他处理器
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [onConfirm, onCancel, focusedIndex]);
 
   return (
-    <div className="exit-modal-overlay">
+    <div className="exit-modal-overlay" data-exit-modal-root="true">
       <div className="exit-modal-dialog">
         <h2 className="exit-modal-title">Exit Application</h2>
         <p className="exit-modal-message">
@@ -291,17 +328,18 @@ function ExitConfirmationModal({ onConfirm, onCancel }: ExitConfirmationModalPro
         <div className="exit-modal-actions">
           <button
             ref={cancelRef}
-            className="exit-modal-btn exit-modal-btn-cancel"
-            data-focusable="true"
-            onClick={onCancel}
+            className={`exit-modal-btn exit-modal-btn-cancel${focusedIndex === 0 ? " focused" : ""}`}
+            data-focusable="false"
+            tabIndex={-1}
             type="button"
           >
             Cancel
           </button>
           <button
-            className="exit-modal-btn exit-modal-btn-confirm"
-            data-focusable="true"
-            onClick={onConfirm}
+            ref={confirmRef}
+            className={`exit-modal-btn exit-modal-btn-confirm${focusedIndex === 1 ? " focused" : ""}`}
+            data-focusable="false"
+            tabIndex={-1}
             type="button"
           >
             Exit
