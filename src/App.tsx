@@ -1499,6 +1499,8 @@ function findClosestElement(
   const currentRect = currentElement.getBoundingClientRect();
   const currentCenterX = currentRect.left + currentRect.width / 2;
   const currentCenterY = currentRect.top + currentRect.height / 2;
+  // Overlap threshold to handle elements that are nearly aligned
+  const OVERLAP_THRESHOLD = 2;
 
   let bestElement: HTMLElement | null = null;
   let bestScore = Number.POSITIVE_INFINITY;
@@ -1514,19 +1516,23 @@ function findClosestElement(
     const deltaX = candidateCenterX - currentCenterX;
     const deltaY = candidateCenterY - currentCenterY;
 
-    if (direction === "left" && deltaX >= 0) {
+    // Use boundary-box overlap detection instead of center-point comparison
+    // to avoid getting stuck cycling through same-row/col elements.
+    // For "down", require the candidate's TOP to be below the current element's BOTTOM
+    // (with small threshold). This guarantees we move to a truly lower element.
+    if (direction === "left" && candidateRect.right >= currentRect.left - OVERLAP_THRESHOLD) {
       continue;
     }
 
-    if (direction === "right" && deltaX <= 0) {
+    if (direction === "right" && candidateRect.left <= currentRect.right + OVERLAP_THRESHOLD) {
       continue;
     }
 
-    if (direction === "up" && deltaY >= 0) {
+    if (direction === "up" && candidateRect.bottom >= currentRect.top - OVERLAP_THRESHOLD) {
       continue;
     }
 
-    if (direction === "down" && deltaY <= 0) {
+    if (direction === "down" && candidateRect.top <= currentRect.bottom + OVERLAP_THRESHOLD) {
       continue;
     }
 
